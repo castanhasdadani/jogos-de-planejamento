@@ -1,1 +1,2547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblioteca de Recursos Terapêuticos & Jogos</title>
 
+  <!-- Google Fonts & Tailwind CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js for Roda da Vida & Alvos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- html2pdf.js for PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            roseMain: '#C25983',
+            roseSec: '#B85C83',
+            bgMain: '#FDF8FA',
+            roseLight: '#F7EBEF',
+            roseSoft: '#F3E8EE',
+            textMain: '#3D2A32',
+            textSec: '#76636C',
+            purpleGame: '#9333EA',
+            lilacGame: '#C084FC'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #FDF8FA;
+      color: #3D2A32;
+      font-family: 'Inter', sans-serif;
+      touch-action: manipulation;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F7EBEF; }
+    ::-webkit-scrollbar-thumb { background: #B85C83; border-radius: 4px; }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+    }
+    .card-shadow {
+      box-shadow: 0 4px 20px -2px rgba(194, 89, 131, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+    }
+    .game-board-node {
+      transition: all 0.2s ease;
+    }
+    .game-board-node:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- HEADER / NAVIGATION -->
+  <header class="bg-white/90 backdrop-blur-md border-b border-roseLight sticky top-0 z-40 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="app.navigate('home')">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-roseMain to-purple-600 flex items-center justify-center text-white shadow-md">
+          <i data-lucide="gamepad-2" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-base text-textMain tracking-tight leading-tight">Biblioteca & Jogos Terapêuticos</h1>
+          <p class="text-[11px] text-textSec font-medium">Autoconhecimento, Flexibilidade & Planejamento</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center gap-2">
+        <button onclick="app.navigate('home')" id="tab-home" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-roseLight text-roseMain font-bold">
+          <i data-lucide="grid" class="w-4 h-4"></i>
+          <span>Biblioteca</span>
+        </button>
+        <button onclick="app.navigate('jogosFolder')" id="tab-jogos" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 text-textSec hover:bg-roseLight hover:text-roseMain">
+          <i data-lucide="folder-kanban" class="w-4 h-4 text-purple-600"></i>
+          <span>📁 JOGOS</span>
+        </button>
+        <button onclick="app.navigate('saved')" id="tab-saved" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 text-textSec hover:bg-roseLight hover:text-roseMain">
+          <i data-lucide="folder-heart" class="w-4 h-4"></i>
+          <span>Salvos</span>
+          <span id="saved-count-badge" class="ml-1 bg-roseMain text-white text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main id="app-viewport" class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8">
+    <!-- Dynamic views render here -->
+  </main>
+
+  <!-- CONFIRMATION MODAL -->
+  <div id="modal-confirm" class="fixed inset-0 bg-textMain/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full card-shadow border border-roseLight space-y-4">
+      <div class="flex items-center gap-3 text-roseMain">
+        <i data-lucide="alert-circle" class="w-6 h-6"></i>
+        <h3 id="modal-title" class="font-bold text-base text-textMain">Confirmar ação</h3>
+      </div>
+      <p id="modal-msg" class="text-xs text-textSec leading-relaxed">Você tem certeza que deseja realizar esta ação?</p>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="app.closeModal()" class="px-4 py-2 rounded-xl border border-roseLight text-xs font-semibold text-textSec hover:bg-roseLight transition">Cancelar</button>
+        <button id="modal-btn-action" class="px-5 py-2 rounded-xl bg-roseMain text-white text-xs font-bold hover:bg-roseSec transition shadow-sm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM PRODUCT MODAL (CASA 6) -->
+  <div id="modal-custom-product" class="fixed inset-0 bg-textMain/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full card-shadow border border-roseLight space-y-4">
+      <div class="flex justify-between items-center border-b pb-2 border-roseLight">
+        <h3 class="font-bold text-sm text-textMain flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-5 h-5 text-purple-600"></i> Adicionar Produto Personalizado
+        </h3>
+        <button onclick="app.closeCustomProductModal()" class="text-textSec hover:text-textMain"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-bold text-textMain block mb-1">Nome do Produto:</label>
+          <input type="text" id="cust-prod-name" placeholder="Ex: Pipoca de micro-ondas..." class="w-full p-2.5 rounded-xl border border-roseLight bg-bgMain">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-textMain block mb-1">Valor (R$):</label>
+            <input type="number" step="0.50" min="0" id="cust-prod-price" placeholder="8.00" class="w-full p-2.5 rounded-xl border border-roseLight bg-bgMain">
+          </div>
+          <div>
+            <label class="font-bold text-textMain block mb-1">Categoria:</label>
+            <select id="cust-prod-cat" class="w-full p-2.5 rounded-xl border border-roseLight bg-bgMain font-medium">
+              <option value="Bebidas">Bebidas</option>
+              <option value="Comidas">Comidas</option>
+              <option value="Bolos e sobremesas">Bolos e sobremesas</option>
+              <option value="Descartáveis">Descartáveis</option>
+              <option value="Decoração">Decoração</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="app.closeCustomProductModal()" class="px-4 py-2 rounded-xl border border-roseLight text-xs font-semibold text-textSec">Cancelar</button>
+        <button onclick="app.saveCustomProduct()" class="px-5 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold hover:bg-purple-700 transition shadow-sm">Salvar Produto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF GENERATION MODAL / PREVIEW -->
+  <div id="modal-pdf" class="fixed inset-0 bg-textMain/60 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white rounded-3xl max-w-4xl w-full h-[90vh] flex flex-col card-shadow border border-roseLight overflow-hidden">
+      <div class="p-4 bg-roseSoft border-b border-roseLight flex justify-between items-center">
+        <div class="flex items-center gap-2 text-roseMain">
+          <i data-lucide="file-check" class="w-5 h-5"></i>
+          <h3 class="font-bold text-sm text-textMain">Visualização & Exportação de PDF Terapêutico</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="app.downloadPDF()" class="bg-roseMain hover:bg-roseSec text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm flex items-center gap-1.5 transition">
+            <i data-lucide="download" class="w-4 h-4"></i> Baixar PDF
+          </button>
+          <button onclick="window.print()" class="bg-white border border-roseLight text-textMain hover:bg-roseLight text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+            <i data-lucide="printer" class="w-4 h-4"></i> Imprimir
+          </button>
+          <button onclick="app.closePDFModal()" class="p-2 text-textSec hover:text-textMain">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto p-6 bg-slate-100" id="pdf-preview-container">
+        <!-- Rendered PDF content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-roseLight py-4 mt-8 no-print">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-textSec space-y-1">
+      <p class="font-medium">Biblioteca de Recursos Terapêuticos & Jogos • Uso Profissional Psicológico</p>
+      <p class="text-[11px] opacity-75">Armazenamento 100% privado no dispositivo local do profissional. Nenhum dado de paciente é enviado a servidores externos.</p>
+    </div>
+  </footer>
+
+  <!-- APPLICATION SCRIPT -->
+  <script>
+    // 33 ACTIVITIES DATABASE & JOGOS STRUCTURE
+    const ACTIVITIES_DATA = [
+      // CATEGORIA 1
+      { id: 1, catId: 1, catName: 'Identidade e Autopercepção', title: '1. Quem sou eu?', target: 'Ambos', objective: 'Promover a autoexploração de características pessoais, valores centrais e aspirações de desenvolvimento.', guidelines: 'Convide o paciente a refletir sem julgamentos. Use as respostas para explorar a discrepância entre o eu atual e o eu desejado.', fields: [{ id: 'q1', type: 'text', label: 'Três palavras que me descrevem:' }, { id: 'q2', type: 'text', label: 'Algo que gosto muito em mim ou no mundo:' }, { id: 'q3', type: 'textarea', label: 'Algo que poucas pessoas sabem sobre mim:' }, { id: 'q4', type: 'textarea', label: 'Como me descreveria para alguém que não me conhece?' }, { id: 'q5', type: 'textarea', label: 'O que faz de mim uma pessoa única?' }, { id: 'q6', type: 'textarea', label: 'Quais características pessoais gostaria de desenvolver?' }] },
+      { id: 2, catId: 1, catName: 'Identidade e Autopercepção', title: '2. Meu autorretrato', target: 'Ambos', objective: 'Expressar graficamente e verbalmente múltiplos aspectos do autoconceito.', guidelines: 'Utilize o espaço de desenho para autoexpressão simbólica. Explore com o paciente as cores e elementos escolhidos.' },
+      { id: 3, catId: 1, catName: 'Identidade e Autopercepção', title: '3. Brasão da minha identidade', target: 'Ambos', objective: 'Sintetizar pilares da identidade em 4 quadrantes simbólicos.', guidelines: 'Trabalhe o brasão como um símbolo de proteção e valores pessoais fundamentais.' },
+      { id: 4, catId: 1, catName: 'Identidade e Autopercepção', title: '4. Além dos meus papéis', target: 'Adultos', objective: 'Diferenciar a essência individual dos papéis sociais impostos ou assumidos (mãe, pai, profissional, etc).', guidelines: 'Utilizado para pacientes com sobrecarga de responsabilidades sociais ou crises de identidade pós-transições de vida.', fields: [{ id: 'q1', type: 'textarea', label: 'Quem sou eu além da minha profissão/ocupação?' }, { id: 'q2', type: 'textarea', label: 'Quem sou eu além de ser filho(a), pai/mãe ou companheiro(a)?' }, { id: 'q3', type: 'textarea', label: 'O que gosto de fazer quando não preciso atender às expectativas de ninguém?' }, { id: 'q4', type: 'textarea', label: 'Quais características fazem parte de mim independentemente dos papéis que exerço?' }] },
+
+      // CATEGORIA 2
+      { id: 5, catId: 2, catName: 'Valores Pessoais', title: '5. Cartas de valores', target: 'Ambos', objective: 'Clarificar valores essenciais para a tomada de decisões alinhadas à vida com significado.', guidelines: 'Acompanhe a triagem dos valores até chegar aos TOP 3. Debata o que impede ações alinhadas a eles.' },
+      { id: 6, catId: 2, catName: 'Valores Pessoais', title: '6. Alvo dos valores', target: 'Ambos', objective: 'Mensurar graficamente o grau de alinhamento atual das atitudes com os valores em 7 áreas de vida.', guidelines: 'Notas baixas no alvo indicam áreas prioritárias para intervenção comportamental.' },
+      { id: 7, catId: 2, catName: 'Valores Pessoais', title: '7. Minha bússola pessoal', target: 'Ambos', objective: 'Definir direções valiosas para orientar a conduta diante de momentos de dúvida ou conflito.', guidelines: 'Auxilie o paciente a transformar intenções abstratas em diretrizes comportamentais diárias.', fields: [{ id: 'q1', type: 'textarea', label: 'Que tipo de pessoa eu quero ser no mundo?' }, { id: 'q2', type: 'textarea', label: 'Como eu gostaria de tratar as pessoas ao meu redor?' }, { id: 'q3', type: 'textarea', label: 'O que eu gostaria que minhas atitudes representassem?' }, { id: 'q4', type: 'textarea', label: 'O que eu não quero abrir mão na minha vida de forma alguma?' }, { id: 'q5', type: 'textarea', label: 'Quais escolhas diárias me aproximam da pessoa que desejo ser?' }] },
+
+      // CATEGORIA 3
+      { id: 8, catId: 3, catName: 'História de Vida', title: '8. Linha da minha vida', target: 'Ambos', objective: 'Mapear marcos biográficos significativos, identificando padrões, resiliência e aprendizados.', guidelines: 'Adicione momentos marcantes com o paciente. Explore ganhos secundários e habilidades desenvolvidas nos desafios.' },
+      { id: 9, catId: 3, catName: 'História de Vida', title: '9. Eu do passado, presente e futuro', target: 'Ambos', objective: 'Desenvolver continuidade temporal do self e perspectiva de crescimento contínuo.', guidelines: 'Promova uma atitude de autocompaixão com o eu do passado e esperança realista com o eu do futuro.', fields: [{ id: 'q1', type: 'textarea', label: 'Como eu era no passado? (Traços, atitudes, defesas)' }, { id: 'q2', type: 'textarea', label: 'Como sou atualmente? (Desafios, pontos fortes, realidade)' }, { id: 'q3', type: 'textarea', label: 'Como gostaria de me desenvolver no futuro?' }] },
+      { id: 10, catId: 3, catName: 'História de Vida', title: '10. Carta para meu eu mais jovem', target: 'Ambos', objective: 'Promover a ressignificação de experiências passadas e integração emocional.', guidelines: 'Indicado para trabalhar culpa, remorso ou traumas leves de fases anteriores do desenvolvimento.', fields: [{ id: 'q1', type: 'textarea', label: 'O que você gostaria de dizer para aquela versão mais jovem de você?' }, { id: 'q2', type: 'textarea', label: 'O que ela precisava ouvir naquela época que ninguém disse?' }, { id: 'q3', type: 'textarea', label: 'O que você compreende hoje sobre a vida que não entendia naquela época?' }] },
+
+      // CATEGORIA 4
+      { id: 11, catId: 4, catName: 'Autopercepção e Potencialidades', title: '11. Meus pontos fortes', target: 'Ambos', objective: 'Reconhecer recursos internos, forças de caráter e evidências reais de autoeficácia.', guidelines: 'Ajude o paciente a romper com o viés de negatividade ao focar em suas qualidades autênticas.', fields: [{ id: 'q1', type: 'textarea', label: 'Minhas principais qualidades fundamentais:' }, { id: 'q2', type: 'textarea', label: 'Habilidades e talentos que reconheço em mim:' }, { id: 'q3', type: 'textarea', label: 'Situações concretas em que demonstrei essas forças:' }, { id: 'q4', type: 'textarea', label: 'Características positivas que outras pessoas costumam reconhecer em mim:' }] },
+      { id: 12, catId: 4, catName: 'Autopercepção e Potencialidades', title: '12. O que ainda preciso desenvolver?', target: 'Ambos', objective: 'Identificar vulnerabilidades com postura construtiva e foco em micro-passos de aprendizado.', guidelines: 'Evite a autocrítica destrutiva; enquadre fragilidades como habilidades ainda não treinadas.', fields: [{ id: 'q1', type: 'textarea', label: 'Minhas dificuldades e limitações atuais:' }, { id: 'q2', type: 'textarea', label: 'Habilidades emocionais ou práticas que gostaria de desenvolver:' }, { id: 'q3', type: 'textarea', label: 'Em quais situações específicas essas dificuldades mais atrapalham?' }, { id: 'q4', type: 'textarea', label: 'Pequenos passos práticos que posso experimentar para evoluir:' }] },
+      { id: 13, catId: 4, catName: 'Autopercepção e Potencialidades', title: '13. Como os outros me veem?', target: 'Ambos', objective: 'Confrontar a autopercepção com o feedback social real e as projeções interpessoais.', guidelines: 'Explore distorções cognitivas como leitura mental e personalização.', fields: [{ id: 'q1', type: 'textarea', label: 'Como eu acredito que a maioria das pessoas me percebe?' }, { id: 'q2', type: 'textarea', label: 'O que as pessoas que me amam costumam valorizar em mim?' }, { id: 'q3', type: 'textarea', label: 'O que eu gostaria que as pessoas realmente compreendessem sobre quem eu sou?' }, { id: 'q4', type: 'textarea', label: 'Existem diferenças entre o que eu sinto por dentro e o feedback que recebo do exterior?' }] },
+      { id: 14, catId: 4, catName: 'Autopercepção e Potencialidades', title: '14. Minhas conquistas invisíveis', target: 'Ambos', objective: 'Validar vitórias silenciosas que não costumam receber aplausos externos.', guidelines: 'Excelente para pacientes perfeccionistas ou com histórico de depressão e baixa autoestima.', fields: [{ id: 'q1', type: 'textarea', label: 'Pequenas conquistas diárias que só eu sei o quanto custaram:' }, { id: 'q2', type: 'textarea', label: 'Desafios emocionais difíceis que superei em silêncio:' }, { id: 'q3', type: 'textarea', label: 'Coisas que antes eram assustadoras e que hoje consigo realizar:' }, { id: 'q4', type: 'textarea', label: 'Esforços pessoais que nem sempre valorizo como deveria:' }] },
+      { id: 15, catId: 4, catName: 'Autopercepção e Potencialidades', title: '15. Meu manual de funcionamento', target: 'Ambos', objective: 'Mapear gatilhos, estratégias de autorregulação e preferências de apoio interpessoal.', guidelines: 'Pode ser compartilhado pelo paciente com pessoas de confiança para melhorar o suporte interpessoal.', fields: [{ id: 'q1', type: 'textarea', label: 'O que me ajuda a ficar bem e me reenergizar?' }, { id: 'q2', type: 'textarea', label: 'O que costuma me sobrecarregar ou estressar?' }, { id: 'q3', type: 'textarea', label: 'Como costumo reagir quando estou sob muito estresse ou ansiedade?' }, { id: 'q4', type: 'textarea', label: 'Como prefiro receber ajuda e carinho nos momentos difíceis?' }, { id: 'q5', type: 'textarea', label: 'O que eu gostaria que as pessoas entendessem sobre meu funcionamento interno?' }] },
+
+      // CATEGORIA 5
+      { id: 16, catId: 5, catName: 'Emoções, Pensamentos e Comportamentos', title: '16. Mapa das emoções no corpo', target: 'Ambos', objective: 'Desenvolver a somatopercepção e a identificação visceral dos estados afetivos.', guidelines: 'Peça ao paciente para posicionar marcadores coloridos no corpo onde sente cada emoção.' },
+      { id: 17, catId: 5, catName: 'Emoções, Pensamentos e Comportamentos', title: '17. O que penso, sinto e faço?', target: 'Ambos', objective: 'Estruturar o modelo cognitivo-comportamental (Situação -> Pensamento -> Emoção -> Reação -> Consequência).', guidelines: 'Ensine a diferenciação psicoeducacional entre pensamentos automáticos e sentimentos.' },
+      { id: 18, catId: 5, catName: 'Emoções, Pensamentos e Comportamentos', title: '18. O iceberg das emoções', target: 'Ambos', objective: 'Identificar a diferença entre comportamentos visíveis e necessidades emocionais subjacentes.', guidelines: 'Explore a raiva ou isolamento na superfície e primárias como medo/tristeza no submerso.' },
+
+      // CATEGORIA 6
+      { id: 19, catId: 6, catName: 'Relacionamentos e Identidade Social', title: '19. Quem sou em cada ambiente?', target: 'Ambos', objective: 'Analisar a flexibilidade relacional e discrepâncias de comportamento em diferentes papéis sociais.', guidelines: 'Verifique se há rigidez excessiva ou camaleonismo social prejudicial.', fields: [{ id: 'q1', type: 'textarea', label: 'Como eu sou e me comporto em CASA com a família?' }, { id: 'q2', type: 'textarea', label: 'Como eu sou no TRABALHO ou no ambiente profissional?' }, { id: 'q3', type: 'textarea', label: 'Como eu sou na ESCOLA / FACULDADE?' }, { id: 'q4', type: 'textarea', label: 'Como eu sou com meus AMIGOS mais próximos?' }, { id: 'q5', type: 'textarea', label: 'Como me comporto em RELACIONAMENTOS AFETIVOS?' }, { id: 'q6', type: 'textarea', label: 'Quais contradições ou diferenças marcantes percebo entre esses contextos?' }] },
+      { id: 20, catId: 6, catName: 'Relacionamentos e Identidade Social', title: '20. Minha rede de relacionamentos', target: 'Ambos', objective: 'Mapear círculos de apoio social, nível de intimidade e trocas afetivas.', guidelines: 'Classifique as relações entre nutritivas, neutras ou desgastantes.' },
+      { id: 21, catId: 6, catName: 'Relacionamentos e Identidade Social', title: '21. O que aceito e o que não aceito?', target: 'Ambos', objective: 'Mapear limites interpessoais, não negociáveis e estratégias de assertividade.', guidelines: 'Auxilie o paciente a vencer o medo de rejeição ao estabelecer limites saudáveis.', fields: [{ id: 'q1', type: 'textarea', label: 'O que considero fundamental e indispensável em uma relação saudável?' }, { id: 'q2', type: 'textarea', label: 'Quais comportamentos ou atitudes eu NÃO aceito de forma alguma?' }, { id: 'q3', type: 'textarea', label: 'Quais são meus limites pessoais mais importantes?' }, { id: 'q4', type: 'textarea', label: 'Tenho facilidade ou dificuldade em dizer "não"? Como isso se manifesta?' }, { id: 'q5', type: 'textarea', label: 'Como posso comunicar meus limites com mais clareza e firmeza?' }] },
+      { id: 22, catId: 6, catName: 'Relacionamentos e Identidade Social', title: '22. Minha voz e minhas escolhas', target: 'Ambos', objective: 'Avaliar o nível de autoexpressão assertiva versus esquiva emocional e conformismo social.', guidelines: 'Trabalhe o direito de ter opiniões divergentes sem sentir culpa.', fields: [{ id: 'q1', type: 'textarea', label: 'Sinto liberdade para expressar minhas opiniões reais no dia a dia?' }, { id: 'q2', type: 'textarea', label: 'Em quais situações ou com quais pessoas costumo me silenciar?' }, { id: 'q3', type: 'textarea', label: 'Tenho dificuldade em discordar dos outros? O que receio que aconteça?' }, { id: 'q4', type: 'textarea', label: 'Quando concordo com alguém, é por convicção ou para evitar conflito?' }, { id: 'q5', type: 'textarea', label: 'O que eu gostaria de mudar na maneira como me posiciono?' }] },
+      { id: 23, catId: 6, catName: 'Relacionamentos e Identidade Social', title: '23. O que espero dos outros e o que ofereço?', target: 'Ambos', objective: 'Refletir sobre reciprocidade relacional, expectativas realistas e responsabilidade interpessoal.', guidelines: 'Promova o equilíbrio entre dar e receber nas relações afetivas e de amizade.', fields: [{ id: 'q1', type: 'textarea', label: 'O que eu espero e busco nas minhas relações (amizades, amor, família)?' }, { id: 'q2', type: 'textarea', label: 'O que eu efetivamente ofereço e entrego nas minhas relações?' }, { id: 'q3', type: 'textarea', label: 'Reflexão sobre reciprocidade: Há equilíbrio entre o que dou e o que recebo?' }] },
+
+      // CATEGORIA 7
+      { id: 24, catId: 7, catName: 'Projetos e Escolhas', title: '24. Meu painel de futuro', target: 'Ambos', objective: 'Visualizar e projetar metas de vida, sonhos e aspirações pessoais/profissionais.', guidelines: 'Permite colar links de imagens ou desenhar e registrar cartões de desejos.' },
+      { id: 25, catId: 7, catName: 'Projetos e Escolhas', title: '25. Roda da vida', target: 'Ambos', objective: 'Avaliar o nível de satisfação (0 a 10) em 8 dimensões essenciais da vida humana.', guidelines: 'Use o gráfico de Teia/Radar para identificar discrepâncias e planejar metas.' },
+      { id: 26, catId: 7, catName: 'Projetos e Escolhas', title: '26. Minha vida em três tempos', target: 'Ambos', objective: 'Planejar metas estruturadas em horizontes temporais de curto, médio e longo prazo.', guidelines: 'Foque no "Primeiro Passo" operacional para gerar momento de mudança.', fields: [{ id: 'q1', type: 'textarea', label: 'CURTO PRAZO (Próximos meses): O que desejo? Por que importa? Qual o 1º passo?' }, { id: 'q2', type: 'textarea', label: 'MÉDIO PRAZO (1 a 3 anos): O que desejo? Por que importa? Qual o 1º passo?' }, { id: 'q3', type: 'textarea', label: 'LONGO PRAZO (5+ anos): O que desejo? Por que importa? Qual o 1º passo?' }] },
+
+      // CATEGORIA 8
+      { id: 27, catId: 8, catName: 'Recursos Específicos para Adolescentes', title: '27. Se minha vida fosse um filme', target: 'Adolescentes', objective: 'Utilizar a metáfora narrativa cinematográfica para externo-observação do momento de vida.', guidelines: 'Trabalhe o paciente como o roteirista e protagonista de sua própria jornada.', fields: [{ id: 'q1', type: 'text', label: 'Qual seria o título do filme da sua vida hoje?' }, { id: 'q2', type: 'textarea', label: 'Quem são os personagens principais e vilões da história?' }, { id: 'q3', type: 'textarea', label: 'Como você descreveria o enredo e os dramas do momento atual?' }, { id: 'q4', type: 'text', label: 'Qual é o gênero do filme? (Comédia, Drama, Ação, Suspense, Aventura...)' }, { id: 'q5', type: 'textarea', label: 'O que você gostaria que acontecesse nos próximos capítulos deste filme?' }] },
+      { id: 28, catId: 8, catName: 'Recursos Específicos para Adolescentes', title: '28. Minha playlist', target: 'Adolescentes', objective: 'Conectar estados afetivos, memórias e identidade através da música.', guidelines: 'Escute trechos das músicas em sessão para aprofundar o vínculo e o suporte emocional.', fields: [{ id: 'q1', type: 'text', label: 'Música que representa minha infância ou momentos marcantes:' }, { id: 'q2', type: 'text', label: 'Música que traduz exatamente como me sinto no momento atual:' }, { id: 'q3', type: 'text', label: 'Música que define minha personalidade e estilo:' }, { id: 'q4', type: 'text', label: 'Música que me acalma quando estou ansioso(a) ou triste:' }, { id: 'q5', type: 'text', label: 'Música que representa meus maiores sonhos e futuro:' }] },
+      { id: 29, catId: 8, catName: 'Recursos Específicos para Adolescentes', title: '29. Meu personagem e eu', target: 'Adolescentes', objective: 'Identificar projeções de valores e ideal de self através de ficção e cultura pop.', guidelines: 'Explore as virtudes do personagem que o adolescente pode cultivar em sua vida real.', fields: [{ id: 'q1', type: 'text', label: 'Personagem escolhido (filmes, séries, animes, jogos, livros):' }, { id: 'q2', type: 'textarea', label: 'Quais características e atitudes você mais admira nesse personagem?' }, { id: 'q3', type: 'textarea', label: 'Em quais aspectos vocês dois se parecem?' }, { id: 'q4', type: 'textarea', label: 'Em quais aspectos vocês são completamente diferentes?' }, { id: 'q5', type: 'textarea', label: 'O que você pode aprender com essa identificação para sua vida real?' }] },
+      { id: 30, catId: 8, catName: 'Recursos Específicos para Adolescentes', title: '30. Quem sou nas redes sociais?', target: 'Adolescentes', objective: 'Debater a hiperexposição, construção da persona digital e comparação social nociva.', guidelines: 'Trabalhe a desconstrução da ilusão da perfeição do feed dos outros.', fields: [{ id: 'q1', type: 'textarea', label: 'Como eu costumo me apresentar e vender minha imagem nas redes?' }, { id: 'q2', type: 'textarea', label: 'O que eu costumo compartilhar e o que faço questão de esconder das redes?' }, { id: 'q3', type: 'textarea', label: 'Existe muita diferença entre quem sou no Instagram/TikTok e na vida real?' }, { id: 'q4', type: 'textarea', label: 'Como me sinto emocionalmente ao acompanhar a vida dos outros na internet?' }, { id: 'q5', type: 'textarea', label: 'O que eu gostaria de mudar na minha relação com as redes sociais?' }] },
+      { id: 31, catId: 8, catName: 'Recursos Específicos para Adolescentes', title: '31. Meu mundo ideal', target: 'Adolescentes', objective: 'Explorar necessidades ambientais, sociais e relacionais para o bem-estar do adolescente.', guidelines: 'Use para identificar fatores estressores no ambiente familiar ou escolar atual.', fields: [{ id: 'q1', type: 'textarea', label: 'Quais pessoas estariam no meu mundo ideal?' }, { id: 'q2', type: 'textarea', label: 'Como seriam os lugares e ambientes desse mundo?' }, { id: 'q3', type: 'textarea', label: 'Quais atividades e rotinas faríamos todos os dias?' }, { id: 'q4', type: 'textarea', label: 'Quais seriam as regras e características do clima emocional desse lugar?' }] },
+      { id: 32, catId: 8, catName: 'Recursos Específicos para Adolescentes', title: '32. Se eu pudesse escolher...', target: 'Adolescentes', objective: 'Estimular a tomada de decisão autônoma e clarificação de desejos reprimidos.', guidelines: 'Cartões interativos de dilemas para soltar a expressão em adolescentes inibidos.' },
+      { id: 33, catId: 8, catName: 'Recursos Específicos para Adolescentes', title: '33. Minha mochila invisível', target: 'Adolescentes', objective: 'Diferenciar cargas emocionais/expectativas alheias dos próprios recursos e valores.', guidelines: 'Trabalhe simbolicamente a libertação de culpas e expectativas que pertencem aos pais ou pares.' }
+    ];
+
+    const CATEGORIES = [
+      'Todas as Categorias',
+      'Identidade e Autopercepção',
+      'Valores Pessoais',
+      'História de Vida',
+      'Autopercepção e Potencialidades',
+      'Emoções, Pensamentos e Comportamentos',
+      'Relacionamentos e Identidade Social',
+      'Projetos e Escolhas',
+      'Recursos Específicos para Adolescentes'
+    ];
+
+    const THERAPEUTIC_GAMES = [
+      {
+        id: 'ceu_pensamentos',
+        title: 'O Céu dos Pensamentos (ACT)',
+        category: 'Flexibilidade Psicológica',
+        description: 'Jogo interativo para adolescentes aprenderem a observar pensamentos como nuvens no céu sem se fundirem a eles.',
+        icon: 'cloud',
+        route: 'ceuPensamentos'
+      },
+      {
+        id: 'festa_sem_caos',
+        title: '🎉 MISSÃO: FESTA SEM CAOS!',
+        category: '📁 JOGOS DE PLANEJAMENTO',
+        description: 'Jogo completo de 15 casas com mercado digital, orçamento de R$ 500,00, imprevistos e tomada de decisão.',
+        icon: 'party-popper',
+        route: 'festaGameHome'
+      },
+      {
+        id: 'missao_cozinha',
+        title: '🍳 MISSÃO COZINHA: DECISÕES NA MEDIDA CERTA!',
+        category: '📁 JOGOS DE PLANEJAMENTO',
+        description: 'Jogo interativo de 12 etapas em cozinha virtual para treinar planejamento, priorização, quantidade, tempo e flexibilidade.',
+        icon: 'chef-hat',
+        route: 'cozinhaGameHome'
+      }
+    ];
+
+    // APPLICATION STATE
+    class AppManager {
+      constructor() {
+        this.currentView = 'home';
+        this.activeActivityId = null;
+        this.searchQuery = '';
+        this.selectedCat = 'Todas as Categorias';
+        this.selectedTarget = 'Todos';
+        this.savedRecords = JSON.parse(localStorage.getItem('BIBLIO_TERAPEUTICA_RECORDS') || '[]');
+        
+        // FESTA SEM CAOS STATE
+        this.festaState = JSON.parse(localStorage.getItem('FESTA_CAOS_STATE') || JSON.stringify({
+          currentHouse: 4,
+          budget: 500.0,
+          guestsCount: 12,
+          guestsList: ['Amigo 1', 'Amigo 2', 'Amigo 3'],
+          cart: [],
+          customProducts: [],
+          partyStyle: 'Temática',
+          partyLocation: 'Salão de festas',
+          essentialItems: ['Bolo', 'Salgados', 'Refrigerante'],
+          tasksOrder: [
+            'Escolher o cardápio',
+            'Fazer a lista de compras',
+            'Comprar os ingredientes',
+            'Preparar os alimentos',
+            'Organizar as mesas',
+            'Preparar a decoração',
+            'Organizar as bebidas',
+            'Receber os convidados'
+          ],
+          timeline: { mesas: '14:30 - 14:50', alimentos: '14:50 - 15:50', decoracao: '14:50 - 15:20', bebidas: '15:20 - 15:30' },
+          prioritiesCasa8: ['Colocar os alimentos na mesa', 'Encher os balões', 'Organizar os copos e pratos'],
+          teamCasa10: { 'Você': ['Encher os balões', 'Organizar a mesa principal'], 'Familiar': ['Colocar os enfeites'], 'Outro amigo': ['Organizar as lembrancinhas'] },
+          spaceCasa11: { local: 'Garagem', protected: ['Bolo', 'Bebidas'], layout: 'Ajustado' },
+          prioritiesCasa13: ['Problema 1: O bolo atrasou', 'Problema 2: O convidado chegou', 'Problema 3: O som quebrou'],
+          retrospective: { keep: 'Planejamento antecipado', change: 'Comprar mais bebidas', strategy: 'Fazer lista de tarefas' }
+        }));
+
+        // MISSÃO COZINHA STATE (12 STAGES)
+        this.cozinhaState = JSON.parse(localStorage.getItem('COZINHA_GAME_STATE') || JSON.stringify({
+          currentStage: 1,
+          selectedRecipe: 'Salada de frutas',
+          recipePortions: 4,
+          ingredientsNeeded: ['Maçã', 'Banana', 'Mamão', 'Laranja'],
+          ingredientsHave: ['Maçã', 'Banana'],
+          ingredientsMissing: ['Mamão', 'Laranja'],
+          tasksOrder: ['Separar os utensílios', 'Lavar as frutas', 'Cortar as frutas', 'Colocar tudo em uma tigela', 'Organizar a bancada'],
+          timeline: [
+            { task: 'Separar ingredientes', time: '5 min' },
+            { task: 'Lavar os alimentos', time: '5 min' },
+            { task: 'Cortar os alimentos', time: '10 min' },
+            { task: 'Preparar a receita', time: '15 min' },
+            { task: 'Organizar a bancada', time: '5 min' }
+          ],
+          missingChoice: 'Verificar se existe um substituto',
+          priorities: { urgente: ['O alimento precisa ser lavado'], importante: ['O tempo está acabando'], esperar: ['A bancada está desorganizada'] },
+          teamDelegation: { 'Você': ['Cortar as frutas'], 'Pessoa 2': ['Lavar os alimentos'], 'Pessoa 3': ['Separar os utensílios'] },
+          surpriseCard: 'O tempo está acabando!',
+          psychologistNotes: {
+            planning: 'Realizou espontaneamente',
+            prioritization: 'Realizou com pouca ajuda',
+            flexibility: 'Realizou espontaneamente',
+            freeNotes: 'Paciente demonstrou excelente autonomia e capacidade de reorganização diante de imprevistos na cozinha.'
+          }
+        }));
+      }
+
+      init() {
+        this.updateSavedBadge();
+        this.navigate('home');
+        lucide.createIcons();
+      }
+
+      saveRecordsToStorage() {
+        localStorage.setItem('BIBLIO_TERAPEUTICA_RECORDS', JSON.stringify(this.savedRecords));
+        this.updateSavedBadge();
+      }
+
+      saveFestaState() {
+        localStorage.setItem('FESTA_CAOS_STATE', JSON.stringify(this.festaState));
+      }
+
+      saveCozinhaState() {
+        localStorage.setItem('COZINHA_GAME_STATE', JSON.stringify(this.cozinhaState));
+      }
+
+      updateSavedBadge() {
+        const badge = document.getElementById('saved-count-badge');
+        if (badge) badge.innerText = this.savedRecords.length;
+      }
+
+      navigate(view, param = null) {
+        this.currentView = view;
+        const viewport = document.getElementById('app-viewport');
+
+        document.getElementById('tab-home').className = view === 'home' ? 
+          'px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-roseLight text-roseMain font-bold' : 
+          'px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 text-textSec hover:bg-roseLight hover:text-roseMain';
+
+        document.getElementById('tab-jogos').className = (view === 'jogosFolder' || view === 'festaGameHome' || view === 'festaBoard' || view === 'ceuPensamentos' || view === 'cozinhaGameHome' || view === 'cozinhaBoard' || view === 'cozinhaPsicoPanel') ? 
+          'px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-purple-100 text-purple-800 font-bold' : 
+          'px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 text-textSec hover:bg-roseLight hover:text-roseMain';
+
+        document.getElementById('tab-saved').className = view === 'saved' ? 
+          'px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-roseLight text-roseMain font-bold' : 
+          'px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 text-textSec hover:bg-roseLight hover:text-roseMain';
+
+        if (view === 'home') {
+          this.renderHomeView(viewport);
+        } else if (view === 'jogosFolder') {
+          this.renderJogosFolderView(viewport);
+        } else if (view === 'saved') {
+          this.renderSavedView(viewport);
+        } else if (view === 'activity') {
+          this.activeActivityId = param;
+          this.renderActivityView(viewport);
+        } else if (view === 'ceuPensamentos') {
+          this.renderCeuPensamentos(viewport);
+        } else if (view === 'festaGameHome') {
+          this.renderFestaHome(viewport);
+        } else if (view === 'festaBoard') {
+          this.renderFestaBoard(viewport);
+        } else if (view === 'cozinhaGameHome') {
+          this.renderCozinhaHome(viewport);
+        } else if (view === 'cozinhaBoard') {
+          this.renderCozinhaBoard(viewport);
+        } else if (view === 'cozinhaPsicoPanel') {
+          this.renderCozinhaPsicoPanel(viewport);
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        lucide.createIcons();
+      }
+
+      // -------------------------------------------------------------
+      // TELA 1: BIBLIOTECA DE ATIVIDADES
+      // -------------------------------------------------------------
+      renderHomeView(container) {
+        const filtered = ACTIVITIES_DATA.filter(act => {
+          const matchSearch = act.title.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                              act.objective.toLowerCase().includes(this.searchQuery.toLowerCase());
+          const matchCat = this.selectedCat === 'Todas as Categorias' || act.catName === this.selectedCat;
+          const matchTarget = this.selectedTarget === 'Todos' || act.target === 'Ambos' || act.target === this.selectedTarget;
+          return matchSearch && matchCat && matchTarget;
+        });
+
+        container.innerHTML = `
+          <div class="mb-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-roseSoft via-roseLight to-bgMain border border-roseLight card-shadow relative overflow-hidden">
+            <div class="max-w-3xl space-y-3 relative z-10">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-roseMain text-xs font-bold shadow-sm">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Uso Profissional Psicológico
+              </span>
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-textMain tracking-tight">Biblioteca de Recursos Terapêuticos</h2>
+              <p class="text-xs sm:text-sm text-textSec leading-relaxed">
+                Atividades e ferramentas para explorar identidade, autoconhecimento, emoções, valores, relacionamentos e projetos de vida.
+              </p>
+              <div class="pt-2 flex gap-3">
+                <button onclick="app.navigate('jogosFolder')" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-2">
+                  <i data-lucide="folder-kanban" class="w-4 h-4"></i> Acessar Pasta JOGOS
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-roseLight card-shadow mb-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+              <div class="md:col-span-6 relative">
+                <i data-lucide="search" class="w-4 h-4 text-textSec absolute left-3.5 top-3.5"></i>
+                <input type="text" placeholder="Pesquisar atividade por nome ou objetivo..." 
+                  value="${this.searchQuery}"
+                  oninput="app.searchQuery = this.value; app.navigate('home');"
+                  class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-roseLight bg-bgMain text-xs text-textMain placeholder-textSec focus:outline-none focus:ring-2 focus:ring-roseMain/30">
+              </div>
+
+              <div class="md:col-span-3">
+                <select onchange="app.selectedCat = this.value; app.navigate('home');"
+                  class="w-full px-3 py-2.5 rounded-xl border border-roseLight bg-bgMain text-xs text-textMain focus:outline-none focus:ring-2 focus:ring-roseMain/30 font-medium">
+                  ${CATEGORIES.map(c => `<option value="${c}" ${c===this.selectedCat?'selected':''}>${c}</option>`).join('')}
+                </select>
+              </div>
+
+              <div class="md:col-span-3">
+                <select onchange="app.selectedTarget = this.value; app.navigate('home');"
+                  class="w-full px-3 py-2.5 rounded-xl border border-roseLight bg-bgMain text-xs text-textMain focus:outline-none focus:ring-2 focus:ring-roseMain/30 font-medium">
+                  <option value="Todos" ${this.selectedTarget==='Todos'?'selected':''}>Público: Todos</option>
+                  <option value="Adolescentes" ${this.selectedTarget==='Adolescentes'?'selected':''}>Adolescentes</option>
+                  <option value="Adultos" ${this.selectedTarget==='Adultos'?'selected':''}>Adultos</option>
+                  <option value="Ambos" ${this.selectedTarget==='Ambos'?'selected':''}>Ambos</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            ${filtered.map(act => `
+              <div class="bg-white rounded-3xl p-5 border border-roseLight card-shadow flex flex-col justify-between hover:border-roseSec transition group">
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="px-2.5 py-1 rounded-full bg-roseLight text-roseMain font-bold">${act.catName}</span>
+                    <span class="px-2 py-0.5 rounded-md bg-slate-100 text-textSec font-medium">${act.target}</span>
+                  </div>
+                  <h3 class="font-bold text-sm text-textMain group-hover:text-roseMain transition line-clamp-1">${act.title}</h3>
+                  <p class="text-xs text-textSec leading-relaxed line-clamp-3">${act.objective}</p>
+                </div>
+
+                <div class="pt-4 mt-4 border-t border-roseLight/60 flex items-center justify-between">
+                  <span class="text-[10px] text-textSec">33 Recursos disponíveis</span>
+                  <button onclick="app.startActivity(${act.id})" class="px-3.5 py-2 rounded-xl bg-roseLight hover:bg-roseMain hover:text-white text-roseMain font-bold text-xs transition flex items-center gap-1.5">
+                    <span>Abrir Exercício</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      // -------------------------------------------------------------
+      // 📁 JOGOS FOLDER STRUCTURE & SUBFOLDER JOGOS DE PLANEJAMENTO
+      // -------------------------------------------------------------
+      renderJogosFolderView(container) {
+        container.innerHTML = `
+          <div class="space-y-6 max-w-5xl mx-auto">
+            <div class="p-6 rounded-3xl bg-gradient-to-r from-purple-100 via-purple-50 to-bgMain border border-purple-200 card-shadow flex items-center justify-between">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2 text-purple-700 font-extrabold text-xs">
+                  <i data-lucide="folder-open" class="w-5 h-5"></i>
+                  <span>DIRETÓRIO PRINCIPAL</span>
+                </div>
+                <h2 class="text-2xl font-extrabold text-textMain tracking-tight">📁 JOGOS</h2>
+                <p class="text-xs text-textSec">Biblioteca reunida de jogos terapêuticos e simuladores interativos para sessões.</p>
+              </div>
+              <button onclick="app.navigate('home')" class="px-4 py-2 bg-white border border-purple-200 text-purple-800 text-xs font-bold rounded-xl shadow-sm hover:bg-purple-50 transition">
+                ← Voltar à Biblioteca
+              </button>
+            </div>
+
+            <div class="space-y-3">
+              <h3 class="font-bold text-sm text-textMain flex items-center gap-2">
+                <i data-lucide="gamepad-2" class="w-4 h-4 text-roseMain"></i> Jogos Terapêuticos Existentes & Treino Cognitivo
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${THERAPEUTIC_GAMES.filter(g => g.id !== 'festa_sem_caos' && g.id !== 'missao_cozinha').map(g => `
+                  <div class="bg-white rounded-3xl p-5 border border-roseLight card-shadow flex flex-col justify-between hover:border-purple-300 transition">
+                    <div class="space-y-2">
+                      <span class="px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 text-[10px] font-bold">${g.category}</span>
+                      <h4 class="font-bold text-base text-textMain">${g.title}</h4>
+                      <p class="text-xs text-textSec leading-relaxed">${g.description}</p>
+                    </div>
+                    <div class="pt-4 mt-4 border-t border-roseLight flex justify-end">
+                      <button onclick="app.navigate('${g.route}')" class="px-4 py-2 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-bold text-xs rounded-xl shadow hover:opacity-90 transition flex items-center gap-1.5">
+                        <span>Jogar / Abrir</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- NOVO BLOCO INTERATIVO DE MEMÓRIA E ATENÇÃO -->
+            <div class="bg-white rounded-3xl p-6 border-2 border-indigo-200 card-shadow space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="space-y-0.5">
+                  <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-extrabold">🧠 DESAFIO DE MEMÓRIA & ATENÇÃO SELETIVA</span>
+                  <h3 class="font-extrabold text-base text-textMain">Radar da Memória & Foco Rápido</h3>
+                </div>
+                <button onclick="app.startMemoryAttentionChallenge()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow transition">
+                  Iniciar Novo Desafio
+                </button>
+              </div>
+              <div id="memory-attention-area" class="text-xs text-textSec">
+                Clique em "Iniciar Novo Desafio" para treinar memória de trabalho e atenção sustentada com sequências visuais.
+              </div>
+            </div>
+
+            <div class="space-y-3 pt-4 border-t border-purple-200">
+              <div class="flex items-center gap-2 text-purple-800 font-extrabold text-sm bg-purple-50 p-4 rounded-2xl border border-purple-200">
+                <i data-lucide="folder-kanban" class="w-5 h-5 text-purple-600"></i>
+                <span>📁 JOGOS DE PLANEJAMENTO (Subpasta)</span>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white rounded-3xl p-6 border-2 border-purple-300 card-shadow space-y-4 hover:border-purple-500 transition flex flex-col justify-between">
+                  <div class="space-y-2">
+                    <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-extrabold">15 Casas • Orçamento R$ 500</span>
+                    <h4 class="font-extrabold text-base text-textMain">🎉 MISSÃO: FESTA SEM CAOS!</h4>
+                    <p class="text-xs text-textSec leading-relaxed">Organize uma festa de aniversário com mercado digital, carrinho e imprevistos.</p>
+                  </div>
+                  <button onclick="app.navigate('festaGameHome')" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow transition">
+                    Acessar Festa sem Caos
+                  </button>
+                </div>
+
+                <div class="bg-white rounded-3xl p-6 border-2 border-purple-300 card-shadow space-y-4 hover:border-purple-500 transition flex flex-col justify-between">
+                  <div class="space-y-2">
+                    <span class="px-3 py-1 rounded-full bg-pink-100 text-pink-800 text-xs font-extrabold">12 Etapas • Cozinha Virtual</span>
+                    <h4 class="font-extrabold text-base text-textMain">🍳 MISSÃO COZINHA: DECISÕES NA MEDIDA CERTA!</h4>
+                    <p class="text-xs text-textSec leading-relaxed">Organize receitas, calcule quantidades, gerencie o tempo e lide com surpresas na cozinha.</p>
+                  </div>
+                  <button onclick="app.navigate('cozinhaGameHome')" class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-95 text-white font-bold text-xs rounded-xl shadow transition">
+                    Acessar Missão Cozinha
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // -------------------------------------------------------------
+      // 🍳 JOGO: MISSÃO COZINHA: DECISÕES NA MEDIDA CERTA! (12 STAGES)
+      // -------------------------------------------------------------
+      renderCozinhaHome(container) {
+        container.innerHTML = `
+          <div class="space-y-6 max-w-4xl mx-auto text-center py-6">
+            <div class="p-8 rounded-3xl bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white card-shadow space-y-4">
+              <span class="px-3 py-1.5 bg-white/20 rounded-full text-xs font-extrabold tracking-wider uppercase">📁 JOGOS DE PLANEJAMENTO</span>
+              <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">🍳 MISSÃO COZINHA: DECISÕES NA MEDIDA CERTA!</h2>
+              <p class="text-sm sm:text-base opacity-95 max-w-2xl mx-auto leading-relaxed">
+                Organize e prepare receitas em uma cozinha virtual com 12 etapas para treinar planejamento, priorização, quantidade e flexibilidade.
+              </p>
+              <div class="pt-4 flex justify-center gap-3">
+                <button onclick="app.navigate('cozinhaBoard')" class="px-6 py-3.5 bg-white text-purple-900 font-extrabold text-xs rounded-2xl shadow-xl hover:bg-purple-50 transition flex items-center gap-2">
+                  <span>Iniciar Cozinha Virtual</span>
+                  <i data-lucide="chef-hat" class="w-4 h-4"></i>
+                </button>
+                <button onclick="app.navigate('cozinhaPsicoPanel')" class="px-6 py-3.5 bg-purple-900/60 border border-white/30 text-white font-extrabold text-xs rounded-2xl shadow-xl hover:bg-purple-900 transition flex items-center gap-2">
+                  <span>Painel do Psicólogo</span>
+                  <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      renderCozinhaBoard(container) {
+        const stage = this.cozinhaState.currentStage;
+        container.innerHTML = `
+          <div class="space-y-6 max-w-5xl mx-auto">
+            <div class="p-4 rounded-3xl bg-white border border-roseLight card-shadow flex flex-wrap items-center justify-between gap-4 text-xs">
+              <div class="flex items-center gap-3">
+                <button onclick="app.navigate('jogosFolder')" class="px-3 py-1.5 bg-purple-50 text-purple-800 rounded-xl font-bold border border-purple-200">← Voltar</button>
+                <div>
+                  <h3 class="font-extrabold text-textMain text-sm">🍳 MISSÃO COZINHA</h3>
+                  <p class="text-textSec text-[11px]">Etapa atual: <strong class="text-purple-700">${stage} de 12</strong></p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <button onclick="app.navigate('cozinhaPsicoPanel')" class="px-3.5 py-2 bg-purple-100 text-purple-900 font-bold rounded-xl flex items-center gap-1.5 hover:bg-purple-200">
+                  <i data-lucide="user-check" class="w-4 h-4"></i> Painel Clínico
+                </button>
+              </div>
+            </div>
+
+            <!-- STAGE NAVIGATION BAR -->
+            <div class="bg-white p-4 rounded-3xl border border-roseLight card-shadow overflow-x-auto">
+              <div class="flex gap-2 min-w-max pb-2">
+                ${Array.from({length: 12}, (_, i) => i + 1).map(num => `
+                  <button onclick="app.setCozinhaStage(${num})" class="game-board-node px-3 py-2 rounded-2xl text-xs font-extrabold flex flex-col items-center gap-1 ${num === stage ? 'bg-purple-600 text-white shadow-md ring-2 ring-purple-300' : num < stage ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                    <span>${num}</span>
+                    <span class="text-[9px] opacity-80">Etapa ${num}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- ACTIVE STAGE CONTENT -->
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-roseLight card-shadow space-y-6">
+              ${this.renderCozinhaStageContent(stage)}
+            </div>
+
+            <!-- STAGE BOTTOM NAVIGATION -->
+            <div class="flex items-center justify-between pt-2">
+              <button onclick="app.prevCozinhaStage()" ${stage <= 1 ? 'disabled':''} class="px-4 py-2.5 bg-white border border-roseLight rounded-xl text-xs font-bold text-textSec disabled:opacity-40 hover:bg-roseLight">
+                ← Etapa Anterior
+              </button>
+              <button onclick="app.nextCozinhaStage()" ${stage >= 12 ? 'disabled':''} class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md transition disabled:opacity-40">
+                Próxima Etapa →
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      setCozinhaStage(num) {
+        this.cozinhaState.currentStage = num;
+        this.saveCozinhaState();
+        this.renderCozinhaBoard(document.getElementById('app-viewport'));
+      }
+
+      nextCozinhaStage() {
+        if (this.cozinhaState.currentStage < 12) {
+          this.setCozinhaStage(this.cozinhaState.currentStage + 1);
+        }
+      }
+
+      prevCozinhaStage() {
+        if (this.cozinhaState.currentStage > 1) {
+          this.setCozinhaStage(this.cozinhaState.currentStage - 1);
+        }
+      }
+
+      renderCozinhaStageContent(stage) {
+        switch(stage) {
+          case 1:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">ETAPA 1 — A MISSÃO COMEÇOU!</span>
+                <h3 class="text-lg font-bold text-textMain">Escolha a receita que deseja preparar na cozinha virtual:</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  ${[
+                    { name: 'Salada de frutas', time: '20 min', serv: '2 pessoas', icon: '🍎' },
+                    { name: 'Sanduíche natural', time: '15 min', serv: '2 pessoas', icon: '🥪' },
+                    { name: 'Panquecas', time: '30 min', serv: '3 pessoas', icon: '🥞' }
+                  ].map(rec => `
+                    <div onclick="app.cozinhaState.selectedRecipe = '${rec.name}'; app.saveCozinhaState(); app.renderCozinhaBoard(document.getElementById('app-viewport'));" class="p-4 rounded-2xl border-2 cursor-pointer transition ${this.cozinhaState.selectedRecipe === rec.name ? 'border-purple-600 bg-purple-50 shadow-md' : 'border-roseLight bg-bgMain'}">
+                      <div class="text-2xl mb-2">${rec.icon}</div>
+                      <h4 class="font-bold text-textMain text-sm">${rec.name}</h4>
+                      <p class="text-textSec mt-1">Tempo: ${rec.time} | Serve: ${rec.serv}</p>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-2">
+                  <label class="font-bold text-textMain block">Ou digite uma receita personalizada:</label>
+                  <input type="text" value="${this.cozinhaState.selectedRecipe}" onchange="app.cozinhaState.selectedRecipe = this.value; app.saveCozinhaState();" class="w-full p-2.5 rounded-xl border border-roseLight bg-white">
+                </div>
+              </div>
+            `;
+
+          case 2:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">ETAPA 2 — O QUE VAMOS PRECISAR?</span>
+                <h3 class="text-lg font-bold text-textMain">Organize os ingredientes nas áreas interativas da bancada</h3>
+                <p class="text-textSec">Toque nos ingredientes para alternar entre "Já tenho" e "Preciso conseguir":</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-2">
+                    <h4 class="font-bold text-emerald-900">🟢 JÁ TENHO EM CASA:</h4>
+                    <div class="flex flex-wrap gap-2">
+                      ${this.cozinhaState.ingredientsHave.map((item, idx) => `
+                        <span class="px-3 py-1.5 bg-white rounded-xl border border-emerald-200 font-bold text-emerald-800 shadow-sm">${item}</span>
+                      `).join('')}
+                    </div>
+                  </div>
+
+                  <div class="p-4 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
+                    <h4 class="font-bold text-amber-900">🟡 PRECISO CONSEGUIR:</h4>
+                    <div class="flex flex-wrap gap-2">
+                      ${this.cozinhaState.ingredientsMissing.map((item, idx) => `
+                        <span class="px-3 py-1.5 bg-white rounded-xl border border-amber-200 font-bold text-amber-800 shadow-sm">${item}</span>
+                      `).join('')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+
+          case 3:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">ETAPA 3 — INVESTIGANDO A COZINHA</span>
+                <h3 class="text-lg font-bold text-textMain">Toque nos locais para investigar o inventário virtual</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  ${['Geladeira', 'Armário', 'Fruteira', 'Gaveta'].map(loc => `
+                    <button onclick="alert('Inventário de ${loc}: Itens inspecionados com sucesso para ${this.cozinhaState.selectedRecipe}!')" class="p-4 bg-bgMain hover:bg-purple-50 rounded-2xl border border-roseLight font-bold text-center transition shadow-sm">
+                      📦 ${loc}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+
+          case 4:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">ETAPA 4 — CALCULANDO AS QUANTIDADES</span>
+                <h3 class="text-lg font-bold text-textMain">Ajuste as porções para ${this.cozinhaState.recipePortions} pessoas:</h3>
+                <div class="flex items-center gap-4 p-4 bg-bgMain rounded-2xl border border-roseLight">
+                  <button onclick="if(app.cozinhaState.recipePortions>1)app.cozinhaState.recipePortions--; app.saveCozinhaState(); app.renderCozinhaBoard(document.getElementById('app-viewport'));" class="px-4 py-2 bg-purple-600 text-white font-bold rounded-xl">-</button>
+                  <strong class="text-base">${this.cozinhaState.recipePortions} Porções</strong>
+                  <button onclick="app.cozinhaState.recipePortions++; app.saveCozinhaState(); app.renderCozinhaBoard(document.getElementById('app-viewport'));" class="px-4 py-2 bg-purple-600 text-white font-bold rounded-xl">+</button>
+                </div>
+              </div>
+            `;
+
+          case 5:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">ETAPA 5 — QUAL É A MELHOR ORDEM?</span>
+                <h3 class="text-lg font-bold text-textMain">Organize a sequência das tarefas de preparo:</h3>
+                <div class="space-y-2">
+                  ${this.cozinhaState.tasksOrder.map((t, idx) => `
+                    <div class="p-3 bg-bgMain rounded-2xl border border-roseLight flex justify-between items-center">
+                      <span>${idx+1}º ${t}</span>
+                      <div class="flex gap-1">
+                        <button onclick="const item=app.cozinhaState.tasksOrder.splice(idx,1)[0]; app.cozinhaState.tasksOrder.unshift(item); app.saveCozinhaState(); app.renderCozinhaBoard(document.getElementById('app-viewport'));" class="px-2 py-1 bg-white border rounded font-bold">↑</button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+
+          case 6:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">ETAPA 6 — O TEMPO ESTÁ PASSANDO!</span>
+                <h3 class="text-lg font-bold text-textMain">Linha do tempo e gerenciamento de imprevistos</h3>
+                <div class="space-y-2">
+                  ${this.cozinhaState.timeline.map((item, idx) => `
+                    <div class="p-3 bg-bgMain rounded-2xl border border-roseLight flex justify-between">
+                      <span class="font-bold">${item.task}</span>
+                      <span class="text-purple-700">${item.time}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+
+          case 7:
+            return this.renderCasa7TimelineHTML();
+
+          case 8:
+            return this.renderCasa8DesafioRelampagoHTML();
+
+          case 9:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">ETAPA 9 — NEM TUDO PRECISA SER FEITO SOZINHO!</span>
+                <h3 class="text-lg font-bold text-textMain">Delegação de tarefas entre os ajudantes:</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  ${Object.entries(this.cozinhaState.teamDelegation).map(([p, tasks]) => `
+                    <div class="p-3 bg-bgMain rounded-xl border border-roseLight">
+                      <strong class="text-purple-700">${p}</strong>
+                      <p class="text-textSec mt-1">${tasks.join(', ')}</p>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+
+          case 10:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">ETAPA 10 — SURPRESA NA COZINHA!</span>
+                <h3 class="text-lg font-bold text-textMain">Imprevisto selecionado pelo Psicólogo:</h3>
+                <div class="p-4 bg-purple-50 rounded-2xl border border-purple-200 font-bold text-purple-900">
+                  ⚠️ ${this.cozinhaState.surpriseCard}
+                </div>
+              </div>
+            `;
+
+          case 11:
+            return this.renderCasa11ChuvaHTML();
+
+          case 12:
+            return this.renderCasa12FinancialHTML();
+
+          case 13:
+            return this.renderCasa13SimultaneoHTML();
+
+          case 14:
+            return this.renderCasa14RetrospectivaHTML();
+
+          case 15:
+            return `
+              <div class="space-y-4 text-center py-4 text-xs">
+                <span class="px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold">🏆 CASA 15 – MISSÃO CUMPRIDA!</span>
+                <h3 class="text-2xl font-extrabold text-textMain">🎉 MISSÃO CONCLUÍDA!</h3>
+                <p class="text-textSec max-w-lg mx-auto leading-relaxed">
+                  Você conseguiu organizar sua festa, administrar o orçamento de R$ 500,00 e encontrar alternativas criativas quando os planos mudaram!
+                </p>
+                <div class="pt-2">
+                  <button onclick="app.openPDFModal()" class="px-6 py-3 bg-purple-600 text-white font-bold rounded-2xl shadow-lg hover:bg-purple-700 transition inline-flex items-center gap-2">
+                    <i data-lucide="file-down" class="w-4 h-4"></i> Gerar Relatório PDF da Missão
+                  </button>
+                </div>
+              </div>
+            `;
+
+          default:
+            return `<p class="text-xs text-textSec">Casa ${house}</p>`;
+        }
+      }
+
+      // -------------------------------------------------------------
+      // DESAFIO INTERATIVO DE MEMÓRIA & ATENÇÃO (NO DIRETORIO JOGOS)
+      // -------------------------------------------------------------
+      startMemoryAttentionChallenge() {
+        const items = [
+          { icon: '🎂', label: 'Bolo' },
+          { icon: '🎈', label: 'Balões' },
+          { icon: '🥤', label: 'Suco' },
+          { icon: '🎁', label: 'Presente' },
+          { icon: '🎵', label: 'Música' },
+          { icon: '🍕', label: 'Salgados' }
+        ];
+        // Pick 4 random sequence items
+        const sequence = [];
+        for (let i = 0; i < 4; i++) {
+          sequence.push(items[Math.floor(Math.random() * items.length)]);
+        }
+        this.memChallenge = { sequence, userClicks: [], phase: 'memorize' };
+
+        const area = document.getElementById('memory-attention-area');
+        area.innerHTML = `
+          <div class="p-4 bg-indigo-50 rounded-2xl border border-indigo-200 space-y-3 text-center">
+            <p class="font-extrabold text-indigo-900 text-sm">👀 MEMORIZE ESTA SEQUÊNCIA EM 4 SEGUNDOS:</p>
+            <div class="flex justify-center gap-3">
+              ${sequence.map((s, idx) => `
+                <div class="p-3 bg-white rounded-2xl border border-indigo-200 shadow-sm w-20">
+                  <div class="text-2xl">${s.icon}</div>
+                  <div class="font-bold text-[11px] text-textMain mt-1">${idx + 1}º ${s.label}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        setTimeout(() => {
+          if (!this.memChallenge) return;
+          this.memChallenge.phase = 'recall';
+          area.innerHTML = `
+            <div class="p-4 bg-bgMain rounded-2xl border border-indigo-200 space-y-3">
+              <div class="flex justify-between items-center">
+                <p class="font-extrabold text-indigo-900">🎯 AGORA TOQUE NA ORDEM EXATA QUE VOCÊ VIU:</p>
+                <span class="font-bold text-indigo-700" id="mem-progress">0 / 4 selecionados</span>
+              </div>
+              <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                ${items.map(it => `
+                  <button onclick="app.handleMemoryClick('${it.label}', '${it.icon}')" class="p-3 bg-white hover:bg-indigo-50 rounded-2xl border border-indigo-200 font-bold text-center transition shadow-sm">
+                    <div class="text-xl">${it.icon}</div>
+                    <div class="text-[11px] mt-1">${it.label}</div>
+                  </button>
+                `).join('')}
+              </div>
+              <div id="mem-feedback" class="text-xs font-bold pt-1"></div>
+            </div>
+          `;
+        }, 4000);
+      }
+
+      handleMemoryClick(label, icon) {
+        if (!this.memChallenge || this.memChallenge.phase !== 'recall') return;
+        this.memChallenge.userClicks.push(label);
+        const count = this.memChallenge.userClicks.length;
+        const prog = document.getElementById('mem-progress');
+        if (prog) prog.innerText = `${count} / 4 selecionados`;
+
+        if (count === 4) {
+          this.memChallenge.phase = 'done';
+          const expected = this.memChallenge.sequence.map(s => s.label);
+          const isCorrect = expected.every((val, i) => val === this.memChallenge.userClicks[i]);
+          const fb = document.getElementById('mem-feedback');
+          if (fb) {
+            fb.innerHTML = isCorrect
+              ? `<span class="text-emerald-700">🌟 Excelente! Você acertou toda a sequência de memória e atenção (${expected.join(' → ')})!</span>`
+              : `<span class="text-rose-700">Quase lá! A sequência era: ${expected.join(' → ')}. Você marcou: ${this.memChallenge.userClicks.join(' → ')}.</span>`;
+          }
+        }
+      }
+
+      // -------------------------------------------------------------
+      // CASA 11: COMEÇOU A CHOVER! (PROTEGER OBJETOS + NOVO LOCAL + LAYOUT)
+      // -------------------------------------------------------------
+      renderCasa11ChuvaHTML() {
+        if (!this.festaState.casa11Data) {
+          this.festaState.casa11Data = {
+            protectedItems: [],
+            newLocation: 'A. Garagem',
+            garageFollowUpAnswer: '',
+            spatialZones: {
+              'Mesas e Cadeiras': 'Centro da área coberta',
+              'Mesa do Bolo e Comidas': 'Parede protegida do vento',
+              'Equipamentos de Som': 'Canto interno seco'
+            },
+            reflection: ''
+          };
+        }
+
+        const c11 = this.festaState.casa11Data;
+        const exposedObjects = [
+          { id: 'Bolo', icon: '🎂', urgency: 'Alta' },
+          { id: 'Equipamentos de som', icon: '🔊', urgency: 'Alta' },
+          { id: 'Decoração', icon: '🎈', urgency: 'Média' },
+          { id: 'Bebidas', icon: '🥤', urgency: 'Média' },
+          { id: 'Mesas', icon: '🪑', urgency: 'Baixa' }
+        ];
+
+        return `
+          <div class="space-y-5 text-xs">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-roseLight pb-3">
+              <div>
+                <span class="px-3 py-1 rounded-full bg-sky-100 text-sky-800 font-bold">🌧️ CASA 11 – COMEÇOU A CHOVER!</span>
+                <h3 class="text-lg font-bold text-textMain mt-1">Proteja os objetos da chuva e reorganize o espaço da festa</h3>
+              </div>
+              <span class="px-3 py-1.5 bg-sky-50 border border-sky-200 rounded-xl font-extrabold text-sky-900">
+                Protegidos: ${c11.protectedItems.length} / ${exposedObjects.length}
+              </span>
+            </div>
+
+            <!-- ATIVIDADE 1: PROTEJA A FESTA -->
+            <div class="p-4 bg-sky-50/70 rounded-2xl border border-sky-200 space-y-3">
+              <h4 class="font-extrabold text-sky-950">1ª Atividade: Toque nos objetos expostos para movê-los para a área coberta</h4>
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                ${exposedObjects.map(obj => {
+                  const isSafe = c11.protectedItems.includes(obj.id);
+                  return `
+                    <button onclick="app.toggleCasa11ProtectItem('${obj.id}')" class="p-3 rounded-2xl border-2 text-center transition flex flex-col items-center gap-1 ${isSafe ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-sm' : 'border-sky-300 bg-white text-textMain hover:bg-sky-100'}">
+                      <span class="text-2xl">${obj.icon}</span>
+                      <span class="font-bold">${obj.id}</span>
+                      <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${isSafe ? 'bg-emerald-200 text-emerald-900' : 'bg-amber-100 text-amber-800'}">
+                        ${isSafe ? '✓ Protegido' : 'Na Chuva'}
+                      </span>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- ATIVIDADE 2: ESCOLHA UM NOVO LOCAL -->
+            <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-3">
+              <h4 class="font-extrabold text-textMain">2ª Atividade: Escolha um novo local abrigado</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                ${[
+                  { title: 'A. Garagem', desc: 'Espaço coberto, mas com capacidade limitada.' },
+                  { title: 'B. Área coberta', desc: 'Protegido da chuva, precisa reorganizar mesas.' },
+                  { title: 'C. Ambiente interno', desc: 'Espaço menor, mas totalmente protegido.' }
+                ].map(loc => `
+                  <button onclick="app.selectCasa11Location('${loc.title}')" class="p-4 rounded-2xl border-2 text-left transition space-y-1 ${c11.newLocation === loc.title ? 'border-purple-600 bg-purple-50 shadow-sm' : 'border-roseLight bg-white hover:border-purple-300'}">
+                    <p class="font-extrabold text-textMain">${loc.title}</p>
+                    <p class="text-[11px] text-textSec">${loc.desc}</p>
+                  </button>
+                `).join('')}
+              </div>
+
+              ${c11.newLocation === 'A. Garagem' ? `
+                <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl space-y-2 text-amber-950">
+                  <p class="font-bold">⚠️ Segundo imprevisto: A garagem é pequena e não comporta todos os convidados sentados ao mesmo tempo!</p>
+                  <input type="text" value="${c11.garageFollowUpAnswer || ''}" onchange="app.festaState.casa11Data.garageFollowUpAnswer = this.value; app.saveFestaState();" placeholder="Como você adaptaria o espaço ou a disposição dos convidados?" class="w-full p-2.5 rounded-xl border border-amber-300 bg-white text-xs">
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- ATIVIDADE 3: ORGANIZE O ESPAÇO (PLANTA INTERATIVA) -->
+            <div class="p-4 bg-white rounded-2xl border border-roseLight space-y-3">
+              <h4 class="font-extrabold text-textMain">3ª Atividade: Organize a planta do novo ambiente sem bloquear a circulação</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                ${Object.keys(c11.spatialZones).map(zone => `
+                  <div class="p-3 bg-bgMain rounded-xl border border-roseLight space-y-1.5">
+                    <span class="font-bold text-purple-800 block">${zone}:</span>
+                    <select onchange="app.updateCasa11Zone('${zone}', this.value)" class="w-full p-2 rounded-lg border border-roseLight bg-white font-medium text-xs">
+                      ${['Centro da área coberta', 'Parede protegida do vento', 'Canto interno seco', 'Próximo à entrada (livre passagem)'].map(pos => `
+                        <option value="${pos}" ${c11.spatialZones[zone] === pos ? 'selected' : ''}>${pos}</option>
+                      `).join('')}
+                    </select>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-1.5">
+              <label class="font-bold text-textMain block">Reflexão: O que precisou mudar e o que ainda pôde ser aproveitado do plano original?</label>
+              <textarea rows="2" onchange="app.festaState.casa11Data.reflection = this.value; app.saveFestaState();" placeholder="Registre sua resposta..." class="w-full p-2.5 rounded-xl border border-roseLight bg-white">${c11.reflection || ''}</textarea>
+            </div>
+          </div>
+        `;
+      }
+
+      toggleCasa11ProtectItem(itemId) {
+        const list = this.festaState.casa11Data.protectedItems;
+        if (list.includes(itemId)) {
+          this.festaState.casa11Data.protectedItems = list.filter(i => i !== itemId);
+        } else {
+          list.push(itemId);
+        }
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      selectCasa11Location(locTitle) {
+        this.festaState.casa11Data.newLocation = locTitle;
+        this.festaState.spaceCasa11.local = locTitle;
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      updateCasa11Zone(zone, pos) {
+        this.festaState.casa11Data.spatialZones[zone] = pos;
+        this.saveFestaState();
+      }
+
+      // -------------------------------------------------------------
+      // CASA 13: TUDO ACONTECEU AO MESMO TEMPO! (PRIORIZAÇÃO + CONSEQUÊNCIAS)
+      // -------------------------------------------------------------
+      renderCasa13SimultaneoHTML() {
+        if (!this.festaState.casa13Data) {
+          this.festaState.casa13Data = {
+            problemsOrder: [
+              'PROBLEMA 1 – O BOLO ATRASOU (O fornecedor avisou que chegará com atraso)',
+              'PROBLEMA 2 – O CONVIDADO CHEGOU (Um convidado chegou 20 minutos antes)',
+              'PROBLEMA 3 – O SOM QUEBROU (A caixa de som parou de funcionar)'
+            ],
+            delegations: {
+              'PROBLEMA 1 – O BOLO ATRASOU': 'Ligar para o fornecedor (Você)',
+              'PROBLEMA 2 – O CONVIDADO CHEGOU': 'Receber agora (Você)',
+              'PROBLEMA 3 – O SOM QUEBROU': 'Pedir ajuda a um amigo'
+            },
+            reflection: ''
+          };
+        }
+
+        const c13 = this.festaState.casa13Data;
+        const topProblem = c13.problemsOrder[0];
+
+        let consequenceText = '';
+        if (topProblem.includes('CONVIDADO')) {
+          consequenceText = 'O convidado foi bem recebido e acolhido na entrada! Enquanto isso, o bolo continua atrasado e a música permanece sem funcionar.';
+        } else if (topProblem.includes('SOM')) {
+          consequenceText = 'Você conseguiu conectar outra caixa de som e a música voltou! Porém, o convidado está esperando na porta e o bolo ainda não chegou.';
+        } else {
+          consequenceText = 'Você entrou em contato com o fornecedor e conseguiu uma previsão exata de entrega! Mas ainda precisa receber o convidado que chegou cedo e resolver a música.';
+        }
+
+        return `
+          <div class="space-y-5 text-xs">
+            <div class="border-b border-roseLight pb-3">
+              <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-800 font-bold">🤯 CASA 13 – TUDO ACONTECEU AO MESMO TEMPO!</span>
+              <h3 class="text-lg font-bold text-textMain mt-1">Faltam 20 minutos! Ordene os 3 problemas simultâneos e decida o que delegar</h3>
+            </div>
+
+            <!-- PAINEL DE PRIORIDADES -->
+            <div class="space-y-2.5">
+              ${c13.problemsOrder.map((prob, idx) => `
+                <div class="p-4 rounded-2xl border-2 flex flex-wrap items-center justify-between gap-3 ${idx === 0 ? 'border-purple-600 bg-purple-50 shadow-sm' : 'border-roseLight bg-bgMain'}">
+                  <div class="space-y-0.5 max-w-xl">
+                    <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase ${idx === 0 ? 'bg-purple-600 text-white' : 'bg-slate-200 text-slate-700'}">
+                      ${idx + 1}º Prioridade de Resolução
+                    </span>
+                    <p class="font-bold text-textMain text-sm pt-1">${prob}</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button onclick="app.moveCasa13Problem(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="px-3 py-1.5 bg-white border border-roseLight rounded-xl font-bold disabled:opacity-30">↑ Subir</button>
+                    <button onclick="app.moveCasa13Problem(${idx}, 1)" ${idx === c13.problemsOrder.length - 1 ? 'disabled' : ''} class="px-3 py-1.5 bg-white border border-roseLight rounded-xl font-bold disabled:opacity-30">↓ Descer</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- CONSEQUÊNCIA DINÂMICA DA 1ª ESCOLHA -->
+            <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-1 text-amber-950">
+              <p class="font-extrabold text-amber-900">📌 Consequência imediata da sua 1ª prioridade:</p>
+              <p class="leading-relaxed">${consequenceText}</p>
+            </div>
+
+            <!-- DELEGAR OU RESOLVER PESSOALMENTE -->
+            <div class="p-4 bg-white rounded-2xl border border-roseLight space-y-3">
+              <h4 class="font-extrabold text-textMain">Quem vai cuidar de cada demanda? (Resolver pessoalmente vs. Delegar)</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                ${[
+                  'PROBLEMA 1 – O BOLO ATRASOU',
+                  'PROBLEMA 2 – O CONVIDADO CHEGOU',
+                  'PROBLEMA 3 – O SOM QUEBROU'
+                ].map(key => `
+                  <div class="p-3 bg-bgMain rounded-xl border border-roseLight space-y-1.5">
+                    <span class="font-bold text-textMain block text-[11px]">${key.split('(')[0]}</span>
+                    <select onchange="app.updateCasa13Delegation('${key}', this.value)" class="w-full p-2 rounded-lg border border-roseLight bg-white font-semibold text-xs">
+                      ${['Resolver pessoalmente (Você)', 'Pedir ajuda a um familiar', 'Pedir ajuda a um amigo', 'Pode esperar alguns minutos'].map(opt => `
+                        <option value="${opt}" ${c13.delegations[key] === opt ? 'selected' : ''}>${opt}</option>
+                      `).join('')}
+                    </select>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-1.5">
+              <label class="font-bold text-textMain block">Reflexão: Como você decidiu o que era mais urgente e o que podia ser delegado?</label>
+              <textarea rows="2" onchange="app.festaState.casa13Data.reflection = this.value; app.saveFestaState();" placeholder="Registre o raciocínio do adolescente..." class="w-full p-2.5 rounded-xl border border-roseLight bg-white">${c13.reflection || ''}</textarea>
+            </div>
+          </div>
+        `;
+      }
+
+      moveCasa13Problem(idx, direction) {
+        const list = this.festaState.casa13Data.problemsOrder;
+        const targetIdx = idx + direction;
+        if (targetIdx < 0 || targetIdx >= list.length) return;
+        const temp = list[idx];
+        list[idx] = list[targetIdx];
+        list[targetIdx] = temp;
+        this.festaState.prioritiesCasa13 = [...list];
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      updateCasa13Delegation(probKey, val) {
+        this.festaState.casa13Data.delegations[probKey] = val;
+        this.saveFestaState();
+      }
+
+      // -------------------------------------------------------------
+      // CASA 14: REVISÃO DO PLANEJAMENTO (RETROSPECTIVA INTERATIVA)
+      // -------------------------------------------------------------
+      renderCasa14RetrospectivaHTML() {
+        if (!this.festaState.casa14Data) {
+          this.festaState.casa14Data = {
+            keepDecision: 'Organizar a lista de compras antes de ir ao mercado',
+            modifyDecision: 'Reservar mais tempo para imprevistos com os alimentos',
+            workedStrategy: 'Delegar tarefas simultâneas quando o tempo apertou',
+            reflectionAnswers: ''
+          };
+        }
+
+        const c14 = this.festaState.casa14Data;
+        const totalSpent = this.festaState.cart.reduce((s, i) => s + (i.price * i.qtd), 0);
+        const remaining = 500.0 - totalSpent;
+
+        return `
+          <div class="space-y-5 text-xs">
+            <div class="border-b border-roseLight pb-3">
+              <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">🔄 CASA 14 – REVISÃO DO PLANEJAMENTO</span>
+              <h3 class="text-lg font-bold text-textMain mt-1">Retrospectiva Completa das Suas Escolhas</h3>
+            </div>
+
+            <!-- 3 PAINÉIS RECUPERADOS AUTOMATICAMENTE -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- PAINEL 1: MINHA FESTA -->
+              <div class="p-4 bg-purple-50/70 rounded-2xl border border-purple-200 space-y-1.5">
+                <h4 class="font-extrabold text-purple-900 border-b border-purple-200 pb-1">1. MINHA FESTA</h4>
+                <p><strong>Estilo escolhido:</strong> ${this.festaState.partyStyle}</p>
+                <p><strong>Local inicial:</strong> ${this.festaState.partyLocation}</p>
+                <p><strong>Local pós-chuva:</strong> ${this.festaState.casa11Data ? this.festaState.casa11Data.newLocation : this.festaState.spaceCasa11.local}</p>
+                <p><strong>Convidados na lista:</strong> ${this.festaState.guestsList.length} pessoas</p>
+              </div>
+
+              <!-- PAINEL 2: MINHAS COMPRAS -->
+              <div class="p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200 space-y-1.5">
+                <h4 class="font-extrabold text-emerald-900 border-b border-emerald-200 pb-1">2. MINHAS COMPRAS</h4>
+                <p><strong>Orçamento inicial:</strong> R$ 500,00</p>
+                <p><strong>Total gasto:</strong> R$ ${totalSpent.toFixed(2)}</p>
+                <p><strong>Saldo restante:</strong> R$ ${remaining.toFixed(2)}</p>
+                <p><strong>Produtos:</strong> ${this.festaState.cart.map(c => `${c.qtd}x ${c.name}`).join(', ') || 'Nenhum item'}</p>
+              </div>
+
+              <!-- PAINEL 3: MEU PLANEJAMENTO -->
+              <div class="p-4 bg-sky-50/70 rounded-2xl border border-sky-200 space-y-1.5">
+                <h4 class="font-extrabold text-sky-900 border-b border-sky-200 pb-1">3. MEU PLANEJAMENTO</h4>
+                <p><strong>1ª etapa (Casa 4):</strong> ${this.festaState.tasksOrder[0]}</p>
+                <p><strong>1ª prioridade (Casa 8):</strong> ${this.festaState.casa8Data ? this.festaState.casa8Data.priorities[0] : this.festaState.prioritiesCasa8[0]}</p>
+                <p><strong>1ª emergência (Casa 13):</strong> ${this.festaState.casa13Data ? this.festaState.casa13Data.problemsOrder[0].split('(')[0] : this.festaState.prioritiesCasa13[0]}</p>
+              </div>
+            </div>
+
+            <!-- ATIVIDADE INTERATIVA: O QUE EU MUDARIA? -->
+            <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-3">
+              <h4 class="font-extrabold text-textMain">Atividade Interativa: Avalie suas próprias estratégias</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="space-y-1">
+                  <label class="font-bold text-emerald-800 block">✓ Uma decisão que eu MANTERIA:</label>
+                  <select onchange="app.festaState.casa14Data.keepDecision = this.value; app.saveFestaState();" class="w-full p-2.5 rounded-xl border border-roseLight bg-white font-medium">
+                    ${[
+                      'Organizar a lista de compras antes de ir ao mercado',
+                      'Controlar o orçamento a cada item adicionado',
+                      'Priorizar os alimentos e convidados antes da decoração',
+                      'Proteger primeiro os itens eletrônicos e o bolo da chuva'
+                    ].map(opt => `<option value="${opt}" ${c14.keepDecision === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                  </select>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="font-bold text-amber-800 block">🔄 Uma decisão que eu MODIFICARIA:</label>
+                  <select onchange="app.festaState.casa14Data.modifyDecision = this.value; app.saveFestaState();" class="w-full p-2.5 rounded-xl border border-roseLight bg-white font-medium">
+                    ${[
+                      'Reservar mais tempo para imprevistos com os alimentos',
+                      'Deixar uma margem maior de dinheiro para emergências',
+                      'Pedir ajuda mais cedo quando alguém não apareceu',
+                      'Confirmar presença dos convidados com antecedência'
+                    ].map(opt => `<option value="${opt}" ${c14.modifyDecision === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                  </select>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="font-bold text-purple-800 block">🧠 Estratégia que MAIS FUNCIONOU:</label>
+                  <select onchange="app.festaState.casa14Data.workedStrategy = this.value; app.saveFestaState();" class="w-full p-2.5 rounded-xl border border-roseLight bg-white font-medium">
+                    ${[
+                      'Delegar tarefas simultâneas quando o tempo apertou',
+                      'Manter a calma e resolver um problema por vez',
+                      'Adaptar o local da festa sem desistir do evento',
+                      'Reorganizar o carrinho para não estourar o orçamento'
+                    ].map(opt => `<option value="${opt}" ${c14.workedStrategy === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-4 bg-white rounded-2xl border border-roseLight space-y-1.5">
+              <label class="font-bold text-textMain block">Reflexão Final: Se pudesse começar novamente, o que faria diferente?</label>
+              <textarea rows="2" onchange="app.festaState.casa14Data.reflectionAnswers = this.value; app.saveFestaState();" placeholder="Escreva aqui as conclusões do adolescente..." class="w-full p-2.5 rounded-xl border border-roseLight bg-bgMain">${c14.reflectionAnswers || ''}</textarea>
+            </div>
+          </div>
+        `;
+      }
+
+      renderFestaHome(container) {
+        container.innerHTML = `
+          <div class="space-y-6 max-w-4xl mx-auto text-center py-6">
+            <div class="p-8 rounded-3xl bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-600 text-white card-shadow space-y-4">
+              <span class="px-3 py-1.5 bg-white/20 rounded-full text-xs font-extrabold tracking-wider uppercase">📁 JOGOS DE PLANEJAMENTO</span>
+              <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">🎉 MISSÃO: FESTA SEM CAOS!</h2>
+              <p class="text-sm sm:text-base opacity-95 max-w-2xl mx-auto leading-relaxed">
+                Organize uma festa de aniversário para 12 convidados com orçamento de R$ 500,00, mercado digital, imprevistos e tomada de decisão em 15 casas.
+              </p>
+              <div class="pt-4 flex justify-center gap-3">
+                <button onclick="app.navigate('festaBoard')" class="px-6 py-3.5 bg-white text-purple-900 font-extrabold text-xs rounded-2xl shadow-xl hover:bg-purple-50 transition flex items-center gap-2">
+                  <span>Iniciar Missão Festa</span>
+                  <i data-lucide="party-popper" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      renderFestaBoard(container) {
+        const house = this.festaState.currentHouse;
+        container.innerHTML = `
+          <div class="space-y-6 max-w-5xl mx-auto">
+            <div class="p-4 rounded-3xl bg-white border border-roseLight card-shadow flex flex-wrap items-center justify-between gap-4 text-xs">
+              <div class="flex items-center gap-3">
+                <button onclick="app.navigate('jogosFolder')" class="px-3 py-1.5 bg-purple-50 text-purple-800 rounded-xl font-bold border border-purple-200">← Voltar</button>
+                <div>
+                  <h3 class="font-extrabold text-textMain text-sm">🎉 MISSÃO: FESTA SEM CAOS!</h3>
+                  <p class="text-textSec text-[11px]">Casa atual: <strong class="text-purple-700">${house} de 15</strong></p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-4 bg-bgMain px-4 py-2 rounded-2xl border border-roseLight">
+                <div>
+                  <span class="text-[10px] text-textSec block">Orçamento Disponível:</span>
+                  <strong class="text-emerald-700 text-sm">R$ ${this.festaState.budget.toFixed(2)}</strong>
+                </div>
+                <div class="border-l border-roseLight pl-4">
+                  <span class="text-[10px] text-textSec block">Itens no Carrinho:</span>
+                  <strong class="text-roseMain text-sm">${this.festaState.cart.reduce((a,b)=>a+b.qtd,0)} itens</strong>
+                </div>
+                <button onclick="app.openPlanoBModal()" class="px-3 py-1.5 bg-amber-100 text-amber-900 rounded-xl font-bold flex items-center gap-1 hover:bg-amber-200">
+                  <i data-lucide="brain" class="w-3.5 h-3.5"></i> Plano B
+                </button>
+              </div>
+            </div>
+
+            <!-- HOUSE NAVIGATION GRID -->
+            <div class="bg-white p-4 rounded-3xl border border-roseLight card-shadow overflow-x-auto">
+              <div class="flex gap-2 min-w-max pb-2">
+                ${Array.from({length: 15}, (_, i) => i + 1).map(num => `
+                  <button onclick="app.setFestaHouse(${num})" class="game-board-node px-3.5 py-2 rounded-2xl text-xs font-extrabold flex flex-col items-center gap-1 ${num === house ? 'bg-purple-600 text-white shadow-md ring-2 ring-purple-300' : num < house ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                    <span>${num}</span>
+                    <span class="text-[9px] opacity-80">Casa ${num}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- ACTIVE HOUSE CONTENT -->
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-roseLight card-shadow space-y-6">
+              ${this.renderHouseContent(house)}
+            </div>
+
+            <!-- BOARD BOTTOM NAVIGATION -->
+            <div class="flex items-center justify-between pt-2">
+              <button onclick="app.prevFestaHouse()" ${house <= 1 ? 'disabled':''} class="px-4 py-2.5 bg-white border border-roseLight rounded-xl text-xs font-bold text-textSec disabled:opacity-40 hover:bg-roseLight">
+                ← Casa Anterior
+              </button>
+              <button onclick="app.nextFestaHouse()" ${house >= 15 ? 'disabled':''} class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md transition disabled:opacity-40">
+                Próxima Casa →
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      setFestaHouse(num) {
+        this.festaState.currentHouse = num;
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      nextFestaHouse() {
+        if (this.festaState.currentHouse < 15) {
+          this.setFestaHouse(this.festaState.currentHouse + 1);
+        }
+      }
+
+      prevFestaHouse() {
+        if (this.festaState.currentHouse > 1) {
+          this.setFestaHouse(this.festaState.currentHouse - 1);
+        }
+      }
+
+      renderHouseContent(house) {
+        switch (house) {
+          case 1:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">🏠 CASA 1 – A MISSÃO COMEÇOU!</span>
+                <h3 class="text-lg font-bold text-textMain">Organize o plano inicial da festa para 12 convidados (Orçamento: R$ 500,00)</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="font-bold text-textMain block mb-1">Estilo da Festa:</label>
+                    <select onchange="app.festaState.partyStyle = this.value; app.saveFestaState();" class="w-full p-2.5 rounded-xl border border-roseLight bg-bgMain font-medium">
+                      ${['Temática', 'Simples', 'Descontraída', 'Surpresa'].map(st => `<option ${this.festaState.partyStyle===st?'selected':''}>${st}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="font-bold text-textMain block mb-1">Local Inicial:</label>
+                    <select onchange="app.festaState.partyLocation = this.value; app.saveFestaState();" class="w-full p-2.5 rounded-xl border border-roseLight bg-bgMain font-medium">
+                      ${['Salão de festas', 'Em casa', 'Área ao ar livre', 'Espaço gourmet'].map(loc => `<option ${this.festaState.partyLocation===loc?'selected':''}>${loc}</option>`).join('')}
+                    </select>
+                  </div>
+                </div>
+                <div class="p-4 bg-purple-50 rounded-2xl border border-purple-200 font-bold text-purple-900">
+                  🎉 Missão aceita! Agora precisamos transformar essa ideia em realidade.
+                </div>
+              </div>
+            `;
+
+          case 2:
+            return `
+              <div class="space-y-4 text-xs">
+                <div class="flex justify-between items-center">
+                  <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">👥 CASA 2 – QUEM VAI À FESTA?</span>
+                  <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-xl font-extrabold">CONVIDADOS: ${this.festaState.guestsList.length}/12</span>
+                </div>
+                <h3 class="text-lg font-bold text-textMain">Adicione os convidados à sua lista (até 12 pessoas)</h3>
+                <div class="flex gap-2">
+                  <input type="text" id="new-guest-input" placeholder="Ex: Amigo 4, Prima Ana..." class="flex-1 p-2.5 rounded-xl border border-roseLight bg-bgMain">
+                  <button onclick="const inp=document.getElementById('new-guest-input'); if(inp.value.trim() && app.festaState.guestsList.length < 12){ app.festaState.guestsList.push(inp.value.trim()); app.saveFestaState(); app.renderFestaBoard(document.getElementById('app-viewport')); }" class="px-4 py-2 bg-purple-600 text-white font-bold rounded-xl">
+                    + Adicionar
+                  </button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  ${this.festaState.guestsList.map((g, i) => `
+                    <span class="px-3 py-1.5 bg-bgMain border border-roseLight rounded-xl font-bold flex items-center gap-2">
+                      ${g}
+                      <button onclick="app.festaState.guestsList.splice(${i}, 1); app.saveFestaState(); app.renderFestaBoard(document.getElementById('app-viewport'));" class="text-rose-500">×</button>
+                    </span>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+
+          case 3:
+            const itemsList = ['Bolo', 'Salgados', 'Docinhos', 'Refrigerantes', 'Água', 'Copos', 'Pratos', 'Guardanapos', 'Balões', 'Toalhas de mesa', 'Enfeites'];
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">🎂 CASA 3 – O QUE PRECISAMOS COMPRAR?</span>
+                <h3 class="text-lg font-bold text-textMain">Toque nos itens para classificá-los como ESSENCIAL ou OPCIONAL</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  ${itemsList.map(item => {
+                    const isEss = (this.festaState.essentialItems || []).includes(item);
+                    return `
+                      <button onclick="app.toggleEssentialItem('${item}')" class="p-3 rounded-2xl border-2 text-left transition flex flex-col justify-between ${isEss ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-roseLight bg-bgMain text-textSec'}">
+                        <span class="font-bold text-textMain">${item}</span>
+                        <span class="text-[10px] font-extrabold mt-1">${isEss ? '★ ESSENCIAL' : '○ OPCIONAL'}</span>
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `;
+
+          case 4:
+            return `
+              <div class="space-y-4 text-xs">
+                <div class="flex justify-between items-center">
+                  <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">📝 CASA 4 – SEQUENCIAMENTO LÓGICO DAS TAREFAS</span>
+                  <button onclick="app.resetTasksOrder()" class="px-3 py-1.5 bg-slate-100 rounded-xl font-bold text-textSec hover:bg-slate-200">Recomeçar Ordem</button>
+                </div>
+                <h3 class="text-lg font-bold text-textMain">Organize as etapas na sequência ideal usando os botões</h3>
+                <div class="space-y-2">
+                  ${this.festaState.tasksOrder.map((task, idx) => `
+                    <div class="p-3.5 bg-bgMain rounded-2xl border border-roseLight flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        <span class="w-7 h-7 rounded-xl bg-purple-600 text-white font-extrabold flex items-center justify-center">${idx + 1}º</span>
+                        <span class="font-bold text-textMain text-sm">${task}</span>
+                      </div>
+                      <div class="flex gap-1.5">
+                        <button onclick="app.moveTaskUp(${idx})" ${idx===0?'disabled':''} class="px-3 py-1.5 bg-white border border-roseLight rounded-xl font-bold disabled:opacity-30">↑ Subir</button>
+                        <button onclick="app.moveTaskDown(${idx})" ${idx===this.festaState.tasksOrder.length-1?'disabled':''} class="px-3 py-1.5 bg-white border border-roseLight rounded-xl font-bold disabled:opacity-30">↓ Descer</button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+
+          case 5:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-800 font-bold">🚨 CASA 5 – IMPREVISTO: O SALÃO FOI CANCELADO!</span>
+                <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-950 space-y-1">
+                  <p class="font-bold">📱 Mensagem recebida:</p>
+                  <p>"Olá! Infelizmente tivemos um problema e não poderemos disponibilizar o salão na data reservada."</p>
+                </div>
+                <h4 class="font-bold text-textMain">Escolha uma alternativa para resolver a situação:</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  ${['Procurar outro salão', 'Fazer a festa em casa', 'Verificar outro espaço na mesma data'].map((alt, idx) => `
+                    <button onclick="app.selectSalonAlternative(${idx})" class="p-4 bg-bgMain hover:bg-purple-50 border border-roseLight rounded-2xl text-left font-bold text-textMain transition">
+                      ${String.fromCharCode(65 + idx)}. ${alt}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+
+          case 6:
+            return this.renderMercadoDigitalHTML();
+
+          case 7:
+            return this.renderCasa7TimelineHTML();
+
+          case 8:
+            return this.renderCasa8DesafioRelampagoHTML();
+
+          case 9:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-bold">📱 CASA 9 – CINCO CONVIDADOS CANCELARAM!</span>
+                <h3 class="text-lg font-bold text-textMain">Você organizou compras para 12 pessoas, mas 5 avisaram que não poderão ir.</h3>
+                <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-1">
+                  <p class="font-bold text-textMain">Itens já comprados no Mercado (Casa 6):</p>
+                  <p class="text-textSec">${this.festaState.cart.map(c => `${c.qtd}x ${c.name}`).join(', ') || 'Nenhum item comprado ainda.'}</p>
+                </div>
+                <textarea rows="3" placeholder="O que pode ser reaproveitado? Como lidaria com essa mudança imprevista?" class="w-full p-3 rounded-xl border border-roseLight bg-bgMain"></textarea>
+              </div>
+            `;
+
+          case 10:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">🤝 CASA 10 – A AJUDA NÃO CHEGOU!</span>
+                <h3 class="text-lg font-bold text-textMain">Faltam 40 minutos e seu amigo não apareceu. Como redistribuir as tarefas?</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  ${['Encher os balões', 'Organizar a mesa principal', 'Colocar os enfeites', 'Organizar as lembrancinhas'].map(t => `
+                    <div class="p-3 bg-bgMain rounded-2xl border border-roseLight flex items-center justify-between">
+                      <span class="font-bold text-textMain">${t}</span>
+                      <select class="p-1.5 rounded-xl border border-roseLight bg-white font-semibold">
+                        <option>Você</option>
+                        <option>Familiar</option>
+                        <option>Outro amigo</option>
+                        <option>Simplificar / Retirar</option>
+                      </select>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+
+          case 11:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-sky-100 text-sky-800 font-bold">🌧️ CASA 11 – COMEÇOU A CHOVER!</span>
+                <h3 class="text-lg font-bold text-textMain">Proteja os itens da festa e reorganize o espaço para área coberta</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  ${['A. Transferir para a garagem', 'B. Utilizar área coberta', 'C. Adaptar espaço interno'].map(opt => `
+                    <button onclick="app.festaState.spaceCasa11.local = '${opt}'; app.saveFestaState(); app.renderFestaBoard(document.getElementById('app-viewport'));" class="p-4 rounded-2xl border-2 text-left font-bold ${this.festaState.spaceCasa11.local === opt ? 'border-sky-600 bg-sky-50 text-sky-900' : 'border-roseLight bg-bgMain'}">
+                      ${opt}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+
+          case 12:
+            return this.renderCasa12FinancialHTML();
+
+          case 13:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-800 font-bold">🤯 CASA 13 – TUDO ACONTECEU AO MESMO TEMPO!</span>
+                <h3 class="text-lg font-bold text-textMain">Faltam 20 minutos! Ordene qual problema resolver primeiro:</h3>
+                <div class="space-y-2">
+                  ${this.festaState.prioritiesCasa13.map((prob, idx) => `
+                    <div class="p-4 bg-bgMain rounded-2xl border border-roseLight flex items-center justify-between">
+                      <div>
+                        <span class="text-[10px] font-extrabold text-purple-700 uppercase">${idx + 1}º Prioridade</span>
+                        <p class="font-bold text-textMain text-sm">${prob}</p>
+                      </div>
+                      <button onclick="app.rotateProblem(${idx})" class="px-3 py-1.5 bg-purple-600 text-white font-bold rounded-xl">Resolver 1º</button>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+
+          case 14:
+            return `
+              <div class="space-y-4 text-xs">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">🔄 CASA 14 – REVISÃO DO PLANEJAMENTO</span>
+                <h3 class="text-lg font-bold text-textMain">Painel de Retrospectiva da Festa</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-1">
+                    <h4 class="font-bold text-purple-800">Painel 1: Minha Festa</h4>
+                    <p>Estilo: <strong>${this.festaState.partyStyle}</strong></p>
+                    <p>Local: <strong>${this.festaState.partyLocation}</strong></p>
+                    <p>Convidados: <strong>${this.festaState.guestsList.length}</strong></p>
+                  </div>
+                  <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-1">
+                    <h4 class="font-bold text-purple-800">Painel 2: Minhas Compras</h4>
+                    <p>Itens: <strong>${this.festaState.cart.length} tipos</strong></p>
+                    <p>Saldo final: <strong>R$ ${this.festaState.budget.toFixed(2)}</strong></p>
+                  </div>
+                  <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-1">
+                    <h4 class="font-bold text-purple-800">Painel 3: Prioridades</h4>
+                    <p>1ª Casa 8: <strong>${this.festaState.prioritiesCasa8[0]}</strong></p>
+                    <p>1ª Casa 13: <strong>${this.festaState.prioritiesCasa13[0]}</strong></p>
+                  </div>
+                </div>
+              </div>
+            `;
+
+          case 15:
+            return `
+              <div class="space-y-4 text-center py-4 text-xs">
+                <span class="px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold">🏆 CASA 15 – MISSÃO CUMPRIDA!</span>
+                <h3 class="text-2xl font-extrabold text-textMain">🎉 MISSÃO CONCLUÍDA!</h3>
+                <p class="text-textSec max-w-lg mx-auto leading-relaxed">
+                  Você conseguiu organizar sua festa, administrar o orçamento de R$ 500,00 e encontrar alternativas criativas quando os planos mudaram!
+                </p>
+                <div class="pt-2">
+                  <button onclick="app.openPDFModal()" class="px-6 py-3 bg-purple-600 text-white font-bold rounded-2xl shadow-lg hover:bg-purple-700 transition inline-flex items-center gap-2">
+                    <i data-lucide="file-down" class="w-4 h-4"></i> Gerar Relatório PDF da Missão
+                  </button>
+                </div>
+              </div>
+            `;
+
+          default:
+            return `<p class="text-xs text-textSec">Casa ${house}</p>`;
+        }
+      }
+
+      renderCeuPensamentos(container) {
+        container.innerHTML = `
+          <div class="space-y-6 max-w-4xl mx-auto text-xs">
+            <div class="p-6 rounded-3xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white card-shadow flex justify-between items-center">
+              <div>
+                <span class="px-3 py-1 bg-white/20 rounded-full font-bold">Flexibilidade Psicológica (ACT)</span>
+                <h2 class="text-2xl font-extrabold mt-1">☁️ O Céu dos Pensamentos</h2>
+              </div>
+              <button onclick="app.navigate('jogosFolder')" class="px-4 py-2 bg-white text-sky-900 font-bold rounded-xl shadow">
+                ← Voltar aos Jogos
+              </button>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-roseLight card-shadow space-y-4">
+              <p class="text-textSec leading-relaxed">Observe seus pensamentos passando como nuvens no céu da mente, sem precisar lutar contra eles.</p>
+              <textarea rows="4" placeholder="Escreva aqui uma nuvem de pensamento que apareceu hoje e como você pode observá-la com gentileza..." class="w-full p-3 rounded-2xl border border-roseLight bg-bgMain"></textarea>
+            </div>
+          </div>
+        `;
+      }
+
+      // -------------------------------------------------------------
+      // CASA 7: PAINEL INTERATIVO DE ORGANIZAÇÃO DO TEMPO (14h30 - 16h)
+      // -------------------------------------------------------------
+      renderCasa7TimelineHTML() {
+        if (!this.festaState.casa7Data) {
+          this.festaState.casa7Data = {
+            foodExtraTime: false,
+            delegatedTasks: [],
+            tasks: [
+              { id: 'mesas', name: 'Organizar as mesas', duration: 20, status: 'pending', startHour: '14:30' },
+              { id: 'alimentos', name: 'Preparar os alimentos', duration: 45, status: 'pending', startHour: '14:30' },
+              { id: 'decoracao', name: 'Finalizar a decoração', duration: 30, status: 'pending', startHour: '14:50' },
+              { id: 'bebidas', name: 'Organizar as bebidas', duration: 10, status: 'pending', startHour: '15:20' }
+            ],
+            reflection: ''
+          };
+        }
+
+        const c7 = this.festaState.casa7Data;
+        const foodDuration = c7.foodExtraTime ? 60 : 45;
+        
+        // Calculate total scheduled non-delegated duration
+        let totalMinutes = 0;
+        c7.tasks.forEach(t => {
+          const dur = t.id === 'alimentos' ? foodDuration : t.duration;
+          if (!c7.delegatedTasks.includes(t.id)) {
+            totalMinutes += dur;
+          }
+        });
+
+        const availableMinutes = 90; // 14h30 to 16h00
+        const remainingMinutes = availableMinutes - totalMinutes;
+        const isOvertime = remainingMinutes < 0;
+
+        return `
+          <div class="space-y-5 text-xs">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-roseLight pb-3">
+              <div>
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">CASA 7 – O TEMPO ESTÁ ACABANDO!</span>
+                <h3 class="text-lg font-bold text-textMain mt-1">Painel de Organização do Tempo (14h30 às 16h00)</h3>
+              </div>
+              <div class="px-4 py-2 rounded-2xl border ${isOvertime ? 'bg-rose-50 border-rose-300 text-rose-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'} font-extrabold">
+                Tempo Disponível: 90 min | Planejado: ${totalMinutes} min (${isOvertime ? 'Ultrapassou ' + Math.abs(remainingMinutes) + ' min!' : 'Sobram ' + remainingMinutes + ' min'})
+              </div>
+            </div>
+
+            <p class="text-textSec">A festa começa às 16h! Agora são 14h30. Organize as tarefas na linha do tempo, altere o status ou delegue atividades simultâneas para outra pessoa ajudar:</p>
+
+            ${isOvertime ? `
+              <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 font-bold flex items-center gap-2">
+                <i data-lucide="alert-triangle" class="w-5 h-5 shrink-0"></i>
+                <span>⚠️ Atenção: O tempo planejado ultrapassou as 16h00! Experimente delegar alguma tarefa simultânea para outra pessoa.</span>
+              </div>
+            ` : ''}
+
+            <!-- IMPREVISTO BUTTON -->
+            <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+              <div class="space-y-0.5">
+                <span class="font-bold text-amber-900">⚡ Imprevisto na Cozinha (Psicóloga):</span>
+                <p class="text-amber-800 text-[11px]">${c7.foodExtraTime ? 'Ativado: Preparar os alimentos agora leva 60 minutos (+15 min extras).' : 'Preparar os alimentos pode demorar mais do que o previsto.'}</p>
+              </div>
+              <button onclick="app.toggleCasa7FoodExtra()" class="px-4 py-2 rounded-xl font-bold text-white shadow-sm transition ${c7.foodExtraTime ? 'bg-slate-600' : 'bg-amber-600 hover:bg-amber-700'}">
+                ${c7.foodExtraTime ? 'Desativar Imprevisto' : 'Ativar Imprevisto (+15 min)'}
+              </button>
+            </div>
+
+            <!-- 3 AREAS: PENDENTES, LINHA DO TEMPO, CONCLUÍDAS -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <!-- AREA 1: TAREFAS PENDENTES -->
+              <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-3">
+                <h4 class="font-extrabold text-textMain border-b border-roseLight pb-1.5">1. TAREFAS PENDENTES</h4>
+                ${c7.tasks.filter(t => t.status === 'pending').map(t => {
+                  const dur = t.id === 'alimentos' ? foodDuration : t.duration;
+                  const isDel = c7.delegatedTasks.includes(t.id);
+                  return `
+                    <div class="p-3 bg-white rounded-xl border border-roseLight shadow-sm space-y-2">
+                      <div class="flex justify-between items-start">
+                        <span class="font-bold text-textMain">${t.name}</span>
+                        <span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-md font-bold text-[10px]">${dur} min</span>
+                      </div>
+                      <div class="flex flex-wrap gap-1.5 pt-1">
+                        <button onclick="app.moveCasa7TaskStatus('${t.id}', 'timeline')" class="px-2.5 py-1.5 bg-purple-600 text-white rounded-lg font-bold text-[11px] hover:bg-purple-700">Agendar →</button>
+                        <button onclick="app.toggleCasa7Delegate('${t.id}')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] border ${isDel ? 'bg-sky-600 text-white border-sky-600' : 'bg-sky-50 text-sky-800 border-sky-200'}">
+                          ${isDel ? '✓ Delegada (Simultânea)' : 'Delegar Tarefa'}
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }).join('') || '<p class="text-slate-400 italic text-[11px]">Todas as tarefas foram agendadas ou concluídas.</p>'}
+              </div>
+
+              <!-- AREA 2: MINHA LINHA DO TEMPO (14h30 - 16h00) -->
+              <div class="p-4 bg-purple-50/70 rounded-2xl border border-purple-200 space-y-3">
+                <h4 class="font-extrabold text-purple-900 border-b border-purple-200 pb-1.5">2. MINHA LINHA DO TEMPO</h4>
+                ${c7.tasks.filter(t => t.status === 'timeline').map(t => {
+                  const dur = t.id === 'alimentos' ? foodDuration : t.duration;
+                  const isDel = c7.delegatedTasks.includes(t.id);
+                  return `
+                    <div class="p-3 bg-white rounded-xl border border-purple-200 shadow-sm space-y-2">
+                      <div class="flex justify-between items-center">
+                        <span class="font-bold text-textMain">${t.name}</span>
+                        <span class="font-extrabold text-purple-700 text-[11px]">${dur} min ${isDel ? '(Ajudante)' : ''}</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <label class="text-[11px] text-textSec">Início:</label>
+                        <select onchange="app.updateCasa7TaskStart('${t.id}', this.value)" class="p-1.5 border border-roseLight rounded-lg text-[11px] font-bold bg-bgMain">
+                          ${['14:30', '14:40', '14:50', '15:00', '15:15', '15:30', '15:45'].map(hr => `<option value="${hr}" ${t.startHour===hr?'selected':''}>${hr}</option>`).join('')}
+                        </select>
+                        <button onclick="app.moveCasa7TaskStatus('${t.id}', 'done')" class="ml-auto px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg font-bold text-[11px]">Concluir ✓</button>
+                      </div>
+                    </div>
+                  `;
+                }).join('') || '<p class="text-purple-400 italic text-[11px]">Toque em "Agendar" nas tarefas pendentes para montar sua linha do tempo.</p>'}
+              </div>
+
+              <!-- AREA 3: TAREFAS CONCLUÍDAS -->
+              <div class="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200 space-y-3">
+                <h4 class="font-extrabold text-emerald-900 border-b border-emerald-200 pb-1.5">3. TAREFAS CONCLUÍDAS</h4>
+                ${c7.tasks.filter(t => t.status === 'done').map(t => `
+                  <div class="p-3 bg-white rounded-xl border border-emerald-200 flex items-center justify-between">
+                    <span class="font-bold text-emerald-900 line-through">${t.name}</span>
+                    <button onclick="app.moveCasa7TaskStatus('${t.id}', 'pending')" class="text-[11px] text-textSec underline">Reabrir</button>
+                  </div>
+                `).join('') || '<p class="text-emerald-600/60 italic text-[11px]">Nenhuma tarefa marcada como concluída ainda.</p>'}
+              </div>
+            </div>
+
+            <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-2">
+              <label class="font-bold text-textMain block">Reflexão: O que mudaria na sua organização se não desse tempo de terminar tudo?</label>
+              <textarea rows="2" onchange="app.festaState.casa7Data.reflection = this.value; app.saveFestaState();" placeholder="Registre aqui sua estratégia de organização do tempo..." class="w-full p-2.5 rounded-xl border border-roseLight bg-white">${c7.reflection || ''}</textarea>
+            </div>
+          </div>
+        `;
+      }
+
+      toggleCasa7FoodExtra() {
+        this.festaState.casa7Data.foodExtraTime = !this.festaState.casa7Data.foodExtraTime;
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      moveCasa7TaskStatus(taskId, newStatus) {
+        const task = this.festaState.casa7Data.tasks.find(t => t.id === taskId);
+        if (task) {
+          task.status = newStatus;
+          this.saveFestaState();
+          this.renderFestaBoard(document.getElementById('app-viewport'));
+        }
+      }
+
+      toggleCasa7Delegate(taskId) {
+        const list = this.festaState.casa7Data.delegatedTasks;
+        if (list.includes(taskId)) {
+          this.festaState.casa7Data.delegatedTasks = list.filter(id => id !== taskId);
+        } else {
+          list.push(taskId);
+        }
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      updateCasa7TaskStart(taskId, hour) {
+        const task = this.festaState.casa7Data.tasks.find(t => t.id === taskId);
+        if (task) {
+          task.startHour = hour;
+          this.saveFestaState();
+        }
+      }
+
+      // -------------------------------------------------------------
+      // CASA 8: DESAFIO RELÂMPAGO! (PRIORIDADES + CONSEQUÊNCIAS + CRONÔMETRO)
+      // -------------------------------------------------------------
+      renderCasa8DesafioRelampagoHTML() {
+        if (!this.festaState.casa8Data) {
+          this.festaState.casa8Data = {
+            priorities: ['Colocar os alimentos na mesa', 'Encher os balões', 'Organizar os copos e pratos'],
+            firstActionChoice: '',
+            timerSeconds: 30,
+            timerActive: false,
+            justification: ''
+          };
+        }
+
+        const c8 = this.festaState.casa8Data;
+        const priorityLabels = ['1º Mais urgente', '2º Importante', '3º Pode esperar um pouco'];
+
+        const consequencesMap = {
+          'Colocar os alimentos na mesa': 'Você garantiu que a comida esteja pronta e fresca para receber os convidados! Agora os balões ainda estão vazios e os copos guardados. Qual será seu próximo passo?',
+          'Encher os balões': 'A sala ficou mais festiva com os balões cheios! Porém, os alimentos continuam na cozinha e os convidados estão quase chegando. Como você organizará o restante?',
+          'Organizar os copos e pratos': 'A mesa de apoio ficou prática para os convidados se servirem! Ainda faltam os alimentos da cozinha e os balões. O que você fará em seguida?'
+        };
+
+        return `
+          <div class="space-y-5 text-xs">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-roseLight pb-3">
+              <div>
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">CASA 8 – DESAFIO RELÂMPAGO!</span>
+                <h3 class="text-lg font-bold text-textMain mt-1">Três Tarefas, Várias Decisões!</h3>
+              </div>
+
+              <!-- CRONÔMETRO LÚDICO DE 30 SEGUNDOS -->
+              <div class="flex items-center gap-2 bg-purple-900 text-white px-4 py-2 rounded-2xl shadow-md">
+                <i data-lucide="timer" class="w-5 h-5 text-amber-300"></i>
+                <span class="font-extrabold text-base w-10 text-center" id="casa8-timer-display">${c8.timerSeconds}s</span>
+                <button onclick="app.startCasa8Timer()" class="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 rounded-lg font-bold text-[11px]">Iniciar</button>
+                <button onclick="app.pauseCasa8Timer()" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 rounded-lg font-bold text-[11px]">Pausar</button>
+                <button onclick="app.resetCasa8Timer()" class="px-2.5 py-1 bg-white/20 hover:bg-white/30 rounded-lg font-bold text-[11px]">Reiniciar</button>
+              </div>
+            </div>
+
+            <!-- ATIVIDADE 1: ORGANIZE AS PRIORIDADES -->
+            <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-3">
+              <h4 class="font-extrabold text-textMain">1ª Atividade: Organize as Prioridades (Toque para reordenar)</h4>
+              <div class="space-y-2">
+                ${c8.priorities.map((task, idx) => `
+                  <div class="p-3.5 bg-white rounded-2xl border border-roseLight shadow-sm flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                      <span class="px-2.5 py-1 rounded-xl font-extrabold text-[11px] ${idx === 0 ? 'bg-rose-100 text-rose-800' : idx === 1 ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'}">
+                        ${priorityLabels[idx]}
+                      </span>
+                      <span class="font-bold text-textMain text-sm">${task}</span>
+                    </div>
+                    <div class="flex gap-1.5">
+                      <button onclick="app.moveCasa8Priority(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="px-3 py-1.5 bg-purple-100 text-purple-900 rounded-xl font-bold disabled:opacity-30">↑ Subir</button>
+                      <button onclick="app.moveCasa8Priority(${idx}, 1)" ${idx === c8.priorities.length - 1 ? 'disabled' : ''} class="px-3 py-1.5 bg-purple-100 text-purple-900 rounded-xl font-bold disabled:opacity-30">↓ Descer</button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- ATIVIDADE 2: O QUE VOCÊ FARIA PRIMEIRO? -->
+            <div class="p-4 bg-purple-50/70 rounded-2xl border border-purple-200 space-y-3">
+              <h4 class="font-extrabold text-purple-900">2ª Atividade: Os alimentos estão na cozinha, os balões vazios e os copos guardados. Qual começaria primeiro?</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                ${['Colocar os alimentos na mesa', 'Encher os balões', 'Organizar os copos e pratos'].map(opt => `
+                  <button onclick="app.selectCasa8FirstAction('${opt}')" class="p-4 rounded-2xl border-2 text-left transition font-bold ${c8.firstActionChoice === opt ? 'border-purple-600 bg-purple-600 text-white shadow-md' : 'border-roseLight bg-white text-textMain hover:border-purple-300'}">
+                    ${opt}
+                  </button>
+                `).join('')}
+              </div>
+
+              ${c8.firstActionChoice ? `
+                <div class="p-4 bg-white rounded-2xl border border-purple-300 text-purple-950 space-y-1">
+                  <p class="font-extrabold text-purple-700">📌 Consequência da sua escolha:</p>
+                  <p class="leading-relaxed">${consequencesMap[c8.firstActionChoice]}</p>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- JUSTIFICATIVA E REFLEXÃO -->
+            <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-2">
+              <label class="font-bold text-textMain block">Por que você escolheu essa ordem de prioridade? O que aconteceria se começasse pela decoração?</label>
+              <textarea rows="2" onchange="app.festaState.casa8Data.justification = this.value; app.saveFestaState();" placeholder="Escreva aqui o raciocínio do adolescente..." class="w-full p-2.5 rounded-xl border border-roseLight bg-white">${c8.justification || ''}</textarea>
+            </div>
+          </div>
+        `;
+      }
+
+      moveCasa8Priority(idx, direction) {
+        const list = this.festaState.casa8Data.priorities;
+        const targetIdx = idx + direction;
+        if (targetIdx < 0 || targetIdx >= list.length) return;
+        const temp = list[idx];
+        list[idx] = list[targetIdx];
+        list[targetIdx] = temp;
+        this.festaState.prioritiesCasa8 = [...list];
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      selectCasa8FirstAction(choice) {
+        this.festaState.casa8Data.firstActionChoice = choice;
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      startCasa8Timer() {
+        if (this.casa8Interval) clearInterval(this.casa8Interval);
+        this.festaState.casa8Data.timerActive = true;
+        this.casa8Interval = setInterval(() => {
+          if (this.festaState.casa8Data.timerSeconds > 0) {
+            this.festaState.casa8Data.timerSeconds -= 1;
+            const el = document.getElementById('casa8-timer-display');
+            if (el) el.innerText = this.festaState.casa8Data.timerSeconds + 's';
+          } else {
+            clearInterval(this.casa8Interval);
+            this.festaState.casa8Data.timerActive = false;
+          }
+        }, 1000);
+      }
+
+      pauseCasa8Timer() {
+        if (this.casa8Interval) clearInterval(this.casa8Interval);
+        this.festaState.casa8Data.timerActive = false;
+      }
+
+      resetCasa8Timer() {
+        if (this.casa8Interval) clearInterval(this.casa8Interval);
+        this.festaState.casa8Data.timerActive = false;
+        this.festaState.casa8Data.timerSeconds = 30;
+        const el = document.getElementById('casa8-timer-display');
+        if (el) el.innerText = '30s';
+      }
+
+      // -------------------------------------------------------------
+      // MERCADO DIGITAL INTERATIVO COM CUSTOM PRODUCTS (CASA 6)
+      // -------------------------------------------------------------
+      renderMercadoDigitalHTML() {
+        const baseCatalog = [
+          { id: 'm1', cat: 'Bebidas', name: 'Refrigerante 2L', price: 9.0 },
+          { id: 'm2', cat: 'Bebidas', name: 'Suco 1L', price: 7.0 },
+          { id: 'm3', cat: 'Bebidas', name: 'Água 1.5L', price: 4.0 },
+          { id: 'm4', cat: 'Comidas', name: 'Pacote de Salgados', price: 25.0 },
+          { id: 'm5', cat: 'Comidas', name: 'Pão de Queijo', price: 18.0 },
+          { id: 'm6', cat: 'Comidas', name: 'Mini-hambúrgueres', price: 30.0 },
+          { id: 'm7', cat: 'Bolos e sobremesas', name: 'Bolo de Aniversário', price: 75.0 },
+          { id: 'm8', cat: 'Bolos e sobremesas', name: 'Brigadeiros (Cento)', price: 30.0 },
+          { id: 'm9', cat: 'Descartáveis', name: 'Copos e Pratos', price: 20.0 },
+          { id: 'm10', cat: 'Decoração', name: 'Balões e Velas', price: 25.0 }
+        ];
+
+        const fullCatalog = [...baseCatalog, ...(this.festaState.customProducts || [])];
+        const totalCart = this.festaState.cart.reduce((sum, item) => sum + (item.price * item.qtd), 0);
+        const remaining = 500.0 - totalCart;
+
+        return `
+          <div class="space-y-6">
+            <div class="p-4 rounded-2xl bg-purple-50 border border-purple-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div>
+                <h3 class="font-extrabold text-purple-900 text-sm">🛒 MERCADO DA FESTA (Casa 6)</h3>
+                <p class="text-purple-700">Orçamento: <strong>R$ 500,00</strong> | Gasto Total: <strong class="text-roseMain">R$ ${totalCart.toFixed(2)}</strong></p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="app.openCustomProductModal()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                  <i data-lucide="plus" class="w-4 h-4">+ ADICIONAR PRODUTO</i>
+                </button>
+                <div class="px-4 py-2 bg-white rounded-xl border border-purple-200 font-bold text-emerald-700">
+                  Saldo: R$ ${remaining.toFixed(2)}
+                </div>
+              </div>
+            </div>
+
+            ${remaining < 0 ? `
+              <div class="p-3 bg-rose-50 rounded-xl border border-rose-200 text-xs text-rose-800 font-bold">
+                ⚠️ OPS! Seu carrinho ultrapassou o orçamento disponível! Retire alguns itens para equilibrar as contas.
+              </div>
+            ` : ''}
+
+            <!-- CATALOG GRID -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+              ${fullCatalog.map(item => `
+                <div class="p-3 bg-bgMain rounded-2xl border border-roseLight flex items-center justify-between card-shadow">
+                  <div>
+                    <span class="text-[10px] text-purple-700 font-bold">${item.cat}</span>
+                    <h4 class="font-bold text-textMain">${item.name}</h4>
+                    <span class="text-emerald-700 font-bold">R$ ${item.price.toFixed(2)}</span>
+                  </div>
+                  <div class="flex gap-1">
+                    <button onclick="app.addToCart('${item.id}', '${item.name}', ${item.price})" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-sm transition">
+                      + Adicionar
+                    </button>
+                    ${item.isCustom ? `<button onclick="app.deleteCustomProduct('${item.id}')" class="text-rose-500 font-bold px-1">×</button>` : ''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- CART SUMMARY -->
+            <div class="space-y-2 pt-4 border-t border-roseLight text-xs">
+              <h4 class="font-bold text-textMain">Carrinho de Compras Atual</h4>
+              ${this.festaState.cart.length === 0 ? '<p class="text-slate-400 italic">Seu carrinho está vazio.</p>' : `
+                <div class="space-y-1.5">
+                  ${this.festaState.cart.map((c, idx) => `
+                    <div class="flex items-center justify-between p-2.5 bg-white rounded-xl border border-roseLight">
+                      <span class="font-medium text-textMain">${c.name} (R$ ${c.price.toFixed(2)} un)</span>
+                      <div class="flex items-center gap-3">
+                        <span class="font-bold">Qtd: ${c.qtd}</span>
+                        <button onclick="app.removeFromCart(${idx})" class="text-rose-500 font-bold hover:underline">Remover</button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      }
+
+      renderCasa12FinancialHTML() {
+        const totalCart = this.festaState.cart.reduce((sum, item) => sum + (item.price * item.qtd), 0);
+        const remaining = 500.0 - totalCart;
+
+        return `
+          <div class="space-y-4 text-xs">
+            <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-bold">CASA 12 – O DINHEIRO ESTÁ CURTO!</span>
+            <h3 class="text-lg font-bold text-textMain">Orçamento Recuperado da Casa 6</h3>
+            <div class="p-4 bg-bgMain rounded-2xl border border-roseLight space-y-2">
+              <p>Saldo real disponível no momento: <strong class="text-emerald-700">R$ ${remaining.toFixed(2)}</strong></p>
+              <p class="text-textSec">Selecione itens extras se houver saldo ou decida quais cortar:</p>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              ${[
+                {name: 'Bebidas extras', price: 30},
+                {name: 'Decoração adicional', price: 25},
+                {name: 'Lembrancinhas', price: 20},
+                {name: 'Copos adicionais', price: 15}
+              ].map(extra => `
+                <button onclick="app.addToCart('extra_${extra.name}', '${extra.name}', ${extra.price})" class="p-3 bg-white rounded-2xl border border-roseLight text-center font-bold hover:bg-purple-50">
+                  + ${extra.name} (R$ ${extra.price.toFixed(2)})
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      openCustomProductModal() {
+        document.getElementById('modal-custom-product').classList.remove('hidden');
+      }
+
+      closeCustomProductModal() {
+        document.getElementById('modal-custom-product').classList.add('hidden');
+      }
+
+      saveCustomProduct() {
+        const name = document.getElementById('cust-prod-name').value.trim();
+        const price = parseFloat(document.getElementById('cust-prod-price').value);
+        const cat = document.getElementById('cust-prod-cat').value;
+
+        if (!name || isNaN(price) || price < 0) {
+          alert('Preencha o nome e um valor válido.');
+          return;
+        }
+
+        if (!this.festaState.customProducts) this.festaState.customProducts = [];
+        this.festaState.customProducts.push({
+          id: 'cust_' + Date.now(),
+          cat,
+          name,
+          price,
+          isCustom: true
+        });
+
+        this.saveFestaState();
+        this.closeCustomProductModal();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      deleteCustomProduct(id) {
+        if (confirm('Deseja excluir este produto personalizado?')) {
+          this.festaState.customProducts = this.festaState.customProducts.filter(p => p.id !== id);
+          this.saveFestaState();
+          this.renderFestaBoard(document.getElementById('app-viewport'));
+        }
+      }
+
+      addToCart(id, name, price) {
+        const existing = this.festaState.cart.find(i => i.id === id);
+        if (existing) {
+          existing.qtd += 1;
+        } else {
+          this.festaState.cart.push({ id, name, price, qtd: 1 });
+        }
+        this.festaState.budget = 500.0 - this.festaState.cart.reduce((s, i) => s + (i.price * i.qtd), 0);
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      removeFromCart(index) {
+        this.festaState.cart.splice(index, 1);
+        this.festaState.budget = 500.0 - this.festaState.cart.reduce((s, i) => s + (i.price * i.qtd), 0);
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      moveTaskUp(idx) {
+        if (idx <= 0) return;
+        const temp = this.festaState.tasksOrder[idx];
+        this.festaState.tasksOrder[idx] = this.festaState.tasksOrder[idx - 1];
+        this.festaState.tasksOrder[idx - 1] = temp;
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      moveTaskDown(idx) {
+        if (idx >= this.festaState.tasksOrder.length - 1) return;
+        const temp = this.festaState.tasksOrder[idx];
+        this.festaState.tasksOrder[idx] = this.festaState.tasksOrder[idx + 1];
+        this.festaState.tasksOrder[idx + 1] = temp;
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      resetTasksOrder() {
+        this.festaState.tasksOrder = [
+          'Escolher o cardápio',
+          'Fazer a lista de compras',
+          'Comprar os ingredientes',
+          'Preparar os alimentos',
+          'Organizar as mesas',
+          'Preparar a decoração',
+          'Organizar as bebidas',
+          'Receber os convidados'
+        ];
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      rotatePriority(idx) {
+        const item = this.festaState.prioritiesCasa8.splice(idx, 1)[0];
+        this.festaState.prioritiesCasa8.unshift(item);
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      toggleEssentialItem(item) {
+        if (!this.festaState.essentialItems) this.festaState.essentialItems = [];
+        if (this.festaState.essentialItems.includes(item)) {
+          this.festaState.essentialItems = this.festaState.essentialItems.filter(i => i !== item);
+        } else {
+          this.festaState.essentialItems.push(item);
+        }
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      selectSalonAlternative(idx) {
+        const options = ['Salão alternativo', 'Fazer em casa', 'Outro espaço'];
+        this.festaState.chosenSalonAlt = options[idx];
+        this.saveFestaState();
+        alert('Alternativa salva com sucesso: ' + options[idx]);
+      }
+
+      rotateProblem(idx) {
+        const item = this.festaState.prioritiesCasa13.splice(idx, 1)[0];
+        this.festaState.prioritiesCasa13.unshift(item);
+        this.saveFestaState();
+        this.renderFestaBoard(document.getElementById('app-viewport'));
+      }
+
+      openPlanoBModal() {
+        alert("🧠 PENSAR EM OUTRA ESTRATÉGIA (Plano B):\n1. O que aconteceu?\n2. Qual parte do planejamento foi afetada?\n3. O que ainda pode ser aproveitado?\n4. Quais outras possibilidades existem?");
+      }
+
+      openPDFModal() {
+        let htmlContent = `
+          <div id="pdf-export-box" class="bg-white p-8 space-y-6 text-xs text-textMain font-sans">
+            <div class="border-b-2 border-purple-600 pb-4 flex justify-between items-start">
+              <div>
+                <h1 class="text-lg font-extrabold text-purple-800">🎉 RELATÓRIO DA MISSÃO: FESTA SEM CAOS!</h1>
+                <p class="text-textSec text-[11px]">Diretório: 📁 JOGOS DE PLANEJAMENTO</p>
+              </div>
+              <div class="text-right text-[10px] text-textSec">
+                <p>Data: ${new Date().toLocaleDateString('pt-BR')}</p>
+                <p class="font-bold text-purple-700">Uso Terapêutico e Clínico</p>
+              </div>
+            </div>
+
+            <div class="space-y-4 pt-2">
+              <div class="p-4 bg-purple-50 rounded-xl border border-purple-200 space-y-1">
+                <p class="font-bold text-purple-900">Resumo da Missão da Festa:</p>
+                <p><strong>Estilo da Festa:</strong> ${this.festaState.partyStyle || 'Não definido'}</p>
+                <p><strong>Local:</strong> ${this.festaState.partyLocation || 'Não definido'}</p>
+                <p><strong>Orçamento Restante:</strong> R$ ${this.festaState.budget.toFixed(2)}</p>
+                <p><strong>Itens no Carrinho:</strong> ${this.festaState.cart.map(c => `${c.qtd}x ${c.name}`).join(', ') || 'Nenhum'}</p>
+              </div>
+            </div>
+
+            <div class="pt-6 border-t border-roseLight text-center text-[10px] text-textSec">
+              <p>Documento gerado pelo simulador de planejamento terapêutico.</p>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('pdf-preview-container').innerHTML = htmlContent;
+        document.getElementById('modal-pdf').classList.remove('hidden');
+      }
+
+      // -------------------------------------------------------------
+      // 33 ACTIVITIES PREVIEW & SUBMISSION
+      // -------------------------------------------------------------
+      startActivity(id) {
+        this.navigate('activity', id);
+      }
+
+      renderActivityView(container) {
+        const act = ACTIVITIES_DATA.find(a => a.id === this.activeActivityId);
+        if (!act) return;
+
+        container.innerHTML = `
+          <div class="space-y-6 max-w-4xl mx-auto">
+            <div class="p-6 rounded-3xl bg-white border border-roseLight card-shadow flex justify-between items-start">
+              <div class="space-y-1">
+                <span class="px-3 py-1 rounded-full bg-roseLight text-roseMain text-xs font-bold">${act.catName} • ${act.target}</span>
+                <h2 class="text-2xl font-extrabold text-textMain">${act.title}</h2>
+                <p class="text-xs text-textSec leading-relaxed"><strong>Objetivo:</strong> ${act.objective}</p>
+              </div>
+              <button onclick="app.navigate('home')" class="px-4 py-2 bg-bgMain border border-roseLight rounded-xl text-xs font-bold text-textSec hover:bg-roseLight">
+                ← Voltar
+              </button>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-roseSoft border border-roseLight text-xs text-textMain space-y-1">
+              <p class="font-bold text-roseMain">💡 Orientação de Aplicação para a Psicóloga:</p>
+              <p class="text-textSec">${act.guidelines}</p>
+            </div>
+
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-roseLight card-shadow space-y-5">
+              <div id="activity-form-container" class="space-y-4">
+                ${act.fields ? act.fields.map(f => `
+                  <div class="space-y-1.5 text-xs">
+                    <label class="font-bold text-textMain block">${f.label}</label>
+                    ${f.type === 'textarea' ? `
+                      <textarea id="field-${f.id}" rows="3" placeholder="Digite a resposta longa do paciente..." class="w-full p-3 rounded-xl border border-roseLight bg-bgMain text-textMain focus:outline-none focus:ring-2 focus:ring-roseMain/30"></textarea>
+                    ` : `
+                      <input type="text" id="field-${f.id}" placeholder="Digite aqui..." class="w-full p-3 rounded-xl border border-roseLight bg-bgMain text-textMain focus:outline-none focus:ring-2 focus:ring-roseMain/30">
+                    `}
+                  </div>
+                `).join('') : `
+                  <div class="p-6 bg-bgMain rounded-2xl border border-roseLight text-center space-y-2">
+                    <p class="font-bold text-textMain text-sm">Ferramenta Interativa Ativa</p>
+                    <p class="text-xs text-textSec">Preencha os campos abaixo para registrar as observações e gerar o PDF individual.</p>
+                    <textarea id="field-custom-notes" rows="4" placeholder="Observações e respostas do paciente nesta atividade..." class="w-full p-3 rounded-xl border border-roseLight bg-white text-xs"></textarea>
+                  </div>
+                `}
+              </div>
+
+              <div class="pt-4 border-t border-roseLight grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label class="font-bold text-textMain block mb-1">Identificador Opcional / Iniciais:</label>
+                  <input type="text" id="activity-patient-id" placeholder="Ex: M.S..." class="w-full p-2.5 rounded-xl border border-roseLight bg-bgMain">
+                </div>
+                <div>
+                  <label class="font-bold text-textMain block mb-1">Observações Complementares:</label>
+                  <input type="text" id="activity-obs" placeholder="Notas da sessão..." class="w-full p-2.5 rounded-xl border border-roseLight bg-bgMain">
+                </div>
+              </div>
+
+              <div class="pt-4 flex flex-wrap items-center justify-between gap-3">
+                <button onclick="app.clearActivityForm()" class="px-4 py-2.5 bg-bgMain border border-roseLight rounded-xl text-xs font-semibold text-textSec hover:bg-roseLight">
+                  Limpar Preenchimento
+                </button>
+                <div class="flex gap-2">
+                  <button onclick="app.saveCurrentActivity()" class="px-5 py-2.5 bg-roseMain text-white font-bold text-xs rounded-xl hover:bg-roseSec transition shadow-sm">
+                    Salvar Atividade
+                  </button>
+                  <button onclick="app.openPDFModalForCurrent()" class="px-5 py-2.5 bg-purple-600 text-white font-bold text-xs rounded-xl hover:bg-purple-700 transition shadow-sm flex items-center gap-1.5">
+                    <i data-lucide="file-down" class="w-4 h-4"></i> Gerar PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      clearActivityForm() {
+        document.querySelectorAll('#activity-form-container input, #activity-form-container textarea').forEach(el => el.value = '');
+        const obs = document.getElementById('activity-obs');
+        if (obs) obs.value = '';
+        const pid = document.getElementById('activity-patient-id');
+        if (pid) pid.value = '';
+      }
+
+      saveCurrentActivity() {
+        const act = ACTIVITIES_DATA.find(a => a.id === this.activeActivityId);
+        if (!act) return;
+
+        const dataObj = {};
+        if (act.fields) {
+          act.fields.forEach(f => {
+            const el = document.getElementById(`field-${f.id}`);
+            dataObj[f.label] = el ? el.value : '';
+          });
+        } else {
+          const el = document.getElementById('field-custom-notes');
+          dataObj['Observações Interativas'] = el ? el.value : '';
+        }
+
+        const patientId = document.getElementById('activity-patient-id')?.value || 'Anônimo';
+        const obs = document.getElementById('activity-obs')?.value || '';
+
+        const record = {
+          id: 'rec_' + Date.now(),
+          activityId: act.id,
+          title: act.title,
+          category: act.catName,
+          patientId,
+          date: new Date().toLocaleDateString('pt-BR'),
+          data: dataObj,
+          obs
+        };
+
+        this.savedRecords.push(record);
+        this.saveRecordsToStorage();
+        alert('Atividade salva com sucesso!');
+      }
+
+      renderSavedView(container) {
+        container.innerHTML = `
+          <div class="space-y-6 max-w-5xl mx-auto">
+            <div class="p-6 rounded-3xl bg-white border border-roseLight card-shadow flex justify-between items-center">
+              <div>
+                <h2 class="text-2xl font-extrabold text-textMain">Atividades Salvas</h2>
+                <p class="text-xs text-textSec">Lista de preenchimentos e registros terapêuticos armazenados localmente.</p>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-roseLight text-roseMain text-xs font-bold">${this.savedRecords.length} salvos</span>
+            </div>
+
+            ${this.savedRecords.length === 0 ? `
+              <div class="bg-white p-12 rounded-3xl border border-roseLight card-shadow text-center space-y-3">
+                <i data-lucide="folder-open" class="w-12 h-12 text-roseMain/40 mx-auto"></i>
+                <h3 class="font-bold text-textMain text-base">Nenhum registro salvo ainda</h3>
+                <p class="text-xs text-textSec max-w-sm mx-auto">Abra qualquer uma das 33 atividades da biblioteca, preencha com o paciente e clique em Salvar.</p>
+                <button onclick="app.navigate('home')" class="px-5 py-2.5 bg-roseMain text-white font-bold text-xs rounded-xl shadow-sm hover:bg-roseSec transition">
+                  Ir para a Biblioteca
+                </button>
+              </div>
+            ` : `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${this.savedRecords.map(rec => `
+                  <div class="bg-white p-5 rounded-3xl border border-roseLight card-shadow space-y-3 flex flex-col justify-between">
+                    <div class="space-y-1.5">
+                      <div class="flex items-center justify-between text-[11px]">
+                        <span class="px-2.5 py-0.5 rounded-full bg-roseLight text-roseMain font-bold">${rec.category}</span>
+                        <span class="text-textSec">${rec.date}</span>
+                      </div>
+                      <h3 class="font-bold text-sm text-textMain">${rec.title}</h3>
+                      <p class="text-xs text-textSec">Paciente / ID: <strong>${rec.patientId}</strong></p>
+                    </div>
+
+                    <div class="pt-3 border-t border-roseLight flex items-center justify-between text-xs">
+                      <button onclick="app.deleteRecord('${rec.id}')" class="text-rose-500 font-semibold hover:underline">Excluir</button>
+                      <button onclick="app.openPDFModalForRecord('${rec.id}')" class="px-3.5 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700 transition flex items-center gap-1.5">
+                        <i data-lucide="file-down" class="w-3.5 h-3.5"></i> Gerar PDF
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      deleteRecord(id) {
+        if (confirm("Tem certeza que deseja excluir este registro salvo?")) {
+          this.savedRecords = this.savedRecords.filter(r => r.id !== id);
+          this.saveRecordsToStorage();
+          this.renderSavedView(document.getElementById('app-viewport'));
+        }
+      }
+
+      openPDFModalForCurrent() {
+        const act = ACTIVITIES_DATA.find(a => a.id === this.activeActivityId);
+        if (!act) return;
+
+        let htmlContent = `
+          <div id="pdf-export-box" class="bg-white p-8 space-y-6 text-xs text-textMain font-sans">
+            <div class="border-b-2 border-roseMain pb-4 flex justify-between items-start">
+              <div>
+                <h1 class="text-lg font-extrabold text-roseMain">${act.title}</h1>
+                <p class="text-textSec text-[11px]">Categoria: ${act.catName} | Público: ${act.target}</p>
+              </div>
+              <div class="text-right text-[10px] text-textSec">
+                <p>Data: ${new Date().toLocaleDateString('pt-BR')}</p>
+                <p class="font-bold text-roseMain">Uso Profissional Psicológico</p>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <p class="font-bold text-textMain">Objetivo Terapêutico:</p>
+              <p class="text-textSec">${act.objective}</p>
+            </div>
+
+            <div class="space-y-4 pt-2">
+              <p class="font-bold text-textMain border-b pb-1">Respostas Registradas:</p>
+        `;
+
+        if (act.fields) {
+          act.fields.forEach(f => {
+            const el = document.getElementById(`field-${f.id}`);
+            const val = el ? el.value : 'Não preenchido';
+            htmlContent += `
+              <div class="p-3 bg-bgMain rounded-xl border border-roseLight space-y-1">
+                <p class="font-bold text-textMain">${f.label}</p>
+                <p class="text-textSec whitespace-pre-wrap">${val || 'Não preenchido'}</p>
+              </div>
+            `;
+          });
+        } else {
+          const el = document.getElementById('field-custom-notes');
+          htmlContent += `
+            <div class="p-3 bg-bgMain rounded-xl border border-roseLight space-y-1">
+              <p class="font-bold text-textMain">Observações do Paciente</p>
+              <p class="text-textSec whitespace-pre-wrap">${el ? el.value || 'Não preenchido' : 'Não preenchido'}</p>
+            </div>
+          `;
+        }
+
+        htmlContent += `
+            </div>
+            <div class="pt-6 border-t border-roseLight text-center text-[10px] text-textSec">
+              <p>Documento gerado pela Biblioteca de Recursos Terapêuticos.</p>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('pdf-preview-container').innerHTML = htmlContent;
+        document.getElementById('modal-pdf').classList.remove('hidden');
+      }
+
+      openPDFModalForRecord(recId) {
+        const rec = this.savedRecords.find(r => r.id === recId);
+        if (!rec) return;
+
+        let htmlContent = `
+          <div id="pdf-export-box" class="bg-white p-8 space-y-6 text-xs text-textMain font-sans">
+            <div class="border-b-2 border-roseMain pb-4 flex justify-between items-start">
+              <div>
+                <h1 class="text-lg font-extrabold text-roseMain">${rec.title}</h1>
+                <p class="text-textSec text-[11px]">Categoria: ${rec.category} | Paciente/ID: ${rec.patientId}</p>
+              </div>
+              <div class="text-right text-[10px] text-textSec">
+                <p>Data: ${rec.date}</p>
+                <p class="font-bold text-roseMain">Registro Salvo</p>
+              </div>
+            </div>
+
+            <div class="space-y-4 pt-2">
+              <p class="font-bold text-textMain border-b pb-1">Respostas do Registro:</p>
+        `;
+
+        for (const [key, val] of Object.entries(rec.data)) {
+          htmlContent += `
+            <div class="p-3 bg-bgMain rounded-xl border border-roseLight space-y-1">
+              <p class="font-bold text-textMain">${key}</p>
+              <p class="text-textSec whitespace-pre-wrap">${val || 'Não preenchido'}</p>
+            </div>
+          `;
+        }
+
+        htmlContent += `
+            </div>
+            ${rec.obs ? `<div class="p-3 bg-roseSoft rounded-xl border border-roseLight"><p class="font-bold text-roseMain">Observações: ${rec.obs}</p></div>` : ''}
+            <div class="pt-6 border-t border-roseLight text-center text-[10px] text-textSec">
+              <p>Documento gerado pela Biblioteca de Recursos Terapêuticos.</p>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('pdf-preview-container').innerHTML = htmlContent;
+        document.getElementById('modal-pdf').classList.remove('hidden');
+      }
+
+      closePDFModal() {
+        document.getElementById('modal-pdf').classList.add('hidden');
+      }
+
+      downloadPDF() {
+        const element = document.getElementById('pdf-export-box');
+        const opt = {
+          margin: 10,
+          filename: `Atividade_Terapeutica_${new Date().toISOString().slice(0,10)}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+      }
+
+      closeModal() {
+        document.getElementById('modal-confirm').classList.add('hidden');
+      }
+    }
+
+    // GLOBAL INITIALIZATION TO FIX REFERENCE ERROR
+    let app;
+    window.addEventListener('DOMContentLoaded', () => {
+      app = new AppManager();
+      app.init();
+    });
+  </script>
+</body>
+</html>
