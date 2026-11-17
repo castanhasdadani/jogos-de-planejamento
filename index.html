@@ -8,8 +8,11 @@
   <!-- Google Fonts & Tailwind CSS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome (Roleta das Emoções) & Canvas Confetti -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -66,6 +69,62 @@
     .game-board-node:hover {
       transform: translateY(-2px);
     }
+  
+    /* ===== ROLETA DAS EMOÇÕES (estilos isolados) ===== */
+        
+
+        
+
+        /* Shadow & Glow Effects */
+        .wheel-shadow {
+            filter: drop-shadow(0px 12px 24px rgba(0, 0, 0, 0.15));
+        }
+
+        .btn-bounce:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+        
+        .btn-bounce:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        /* Floating background items animation */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(5deg); }
+        }
+
+        .animate-float {
+            animation: floatSlow 6s ease-in-out infinite;
+        }
+
+        .animate-float-delayed {
+            animation: floatSlow 7s ease-in-out 2s infinite;
+        }
+
+        /* Modal backdrop animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-animate {
+            animation: fadeIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Pointer pulse animation */
+        @keyframes pointerPulse {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        .pointer-anim {
+            animation: pointerPulse 1.5s ease-in-out infinite;
+        }
+    
+#roleta-root{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#F0FDF4 0%,#FDF2F8 33%,#F3E8FF 66%,#FFF7ED 100%);}
+#roleta-root h1,#roleta-root h2,#roleta-root h3,#roleta-root .font-heading{font-family:'Fredoka',cursive;}
+
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -195,6 +254,322 @@
     </div>
   </footer>
 
+  <script>
+  // ===== ROLETA DAS EMOÇÕES (módulo integrado) =====
+  const ROLETA_HTML = "<div id=\"roleta-root\" class=\"relative overflow-hidden rounded-3xl min-h-[80vh] text-slate-700 flex flex-col\">\n\n    <!-- Elementos Decorativos de Fundo (Ursinhos, Estrelas, Nuvens) -->\n    <div class=\"absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-40\">\n        <i class=\"fa-solid fa-cloud text-white text-6xl absolute top-10 left-10 animate-float drop-shadow\"></i>\n        <i class=\"fa-solid fa-cloud text-white text-8xl absolute top-28 right-16 animate-float-delayed drop-shadow\"></i>\n        <i class=\"fa-solid fa-star text-amber-300 text-3xl absolute top-1/4 left-1/6 animate-pulse\"></i>\n        <i class=\"fa-solid fa-heart text-pink-300 text-3xl absolute top-1/3 right-1/5 animate-pulse\"></i>\n        <i class=\"fa-solid fa-paw text-emerald-300 text-5xl absolute bottom-20 left-12 animate-float\"></i>\n        <i class=\"fa-solid fa-school text-purple-300 text-5xl absolute bottom-24 right-12 animate-float-delayed\"></i>\n        <i class=\"fa-solid fa-bag-shopping text-orange-300 text-4xl absolute top-1/2 left-8 animate-float\"></i>\n    </div>\n\n    <div class=\"container mx-auto px-4 py-6 flex-grow flex flex-col items-center justify-between relative z-10 max-w-5xl\">\n        \n        <!-- Cabeçalho / Título do Site -->\n        <header class=\"text-center mb-4\">\n            <div class=\"inline-flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-1.5 rounded-full shadow-sm border border-emerald-100 text-emerald-700 text-sm font-bold mb-2\">\n                <i class=\"fa-solid fa-face-smile text-amber-400 text-lg\"></i>\n                Psicoterapia Infantil Lúdica\n            </div>\n            <h1 class=\"text-2xl sm:text-4xl md:text-5xl font-extrabold text-slate-800 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-purple-600 to-orange-500 mb-1\">\n                ROLETA DAS EMOÇÕES\n            </h1>\n            <h2 class=\"text-lg sm:text-2xl font-bold text-slate-600 font-heading\">\n                MINHA JORNADA ATÉ A ESCOLA\n            </h2>\n            <p class=\"text-slate-500 font-semibold text-sm sm:text-base mt-1\">\n                <i class=\"fa-solid fa-wand-magic-sparkles text-purple-400 mr-1\"></i>\n                \"Vamos girar e descobrir uma pergunta para conversar?\"\n            </p>\n        </header>\n\n        <!-- Seção Principal: Roleta e Pointer -->\n        <main class=\"w-full flex flex-col items-center justify-center my-2\">\n            \n            <div class=\"relative flex flex-col items-center justify-center\">\n                \n                <!-- Ponteiro Fixo Superior -->\n                <div class=\"absolute -top-6 z-30 pointer-anim flex flex-col items-center drop-shadow-md\">\n                    <div class=\"w-10 h-10 bg-amber-400 rounded-full border-4 border-white flex items-center justify-center text-white shadow-md\">\n                        <i class=\"fa-solid fa-arrow-down text-xl text-amber-800\"></i>\n                    </div>\n                    <div class=\"w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[20px] border-t-amber-400 -mt-2\"></div>\n                </div>\n\n                <!-- Canvas da Roleta -->\n                <div class=\"wheel-shadow p-3 bg-white/90 rounded-full border-8 border-white backdrop-blur shadow-2xl relative\">\n                    <canvas id=\"wheelCanvas\" width=\"460\" height=\"460\" class=\"max-w-[320px] sm:max-w-[420px] md:max-w-[460px] h-auto cursor-pointer rounded-full transition-transform duration-300\"></canvas>\n                    \n                    <!-- Botão Central Decorativo/Ursinho -->\n                    <div class=\"absolute inset-0 m-auto w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full border-4 border-amber-300 shadow-lg flex items-center justify-center pointer-events-none z-20\">\n                        <div class=\"w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-tr from-amber-100 to-amber-200 rounded-full flex items-center justify-center text-amber-600 text-2xl sm:text-3xl\">\n                            <i class=\"fa-solid fa-paw\"></i>\n                        </div>\n                    </div>\n                </div>\n\n            </div>\n\n            <!-- Controles da Roleta -->\n            <div class=\"mt-6 flex flex-col sm:flex-row items-center gap-4 w-full max-w-md justify-center\">\n                <button id=\"spinBtn\" onclick=\"RoletaEmocoes.spinWheel()\" class=\"btn-bounce w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white font-heading text-xl sm:text-2xl font-bold rounded-2xl shadow-lg hover:shadow-emerald-200 transition-all duration-200 flex items-center justify-center gap-3 border-b-4 border-emerald-700\">\n                    <i class=\"fa-solid fa-rotate-right text-2xl\"></i>\n                    <span>GIRAR A ROLETA</span>\n                </button>\n\n                <button id=\"resetBtn\" onclick=\"RoletaEmocoes.resetQuestions()\" class=\"btn-bounce px-5 py-4 bg-white hover:bg-slate-50 text-slate-600 font-bold rounded-2xl border-2 border-slate-200 shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base\">\n                    <i class=\"fa-solid fa-arrow-rotate-left text-slate-400\"></i>\n                    <span>REINICIAR PERGUNTAS</span>\n                </button>\n            </div>\n\n            <!-- Contador de Perguntas Sorvedas / Restantes -->\n            <div class=\"mt-4 flex items-center gap-2 bg-white/70 backdrop-blur px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-slate-600 border border-slate-200/60 shadow-sm\">\n                <i class=\"fa-solid fa-list-check text-purple-500\"></i>\n                <span id=\"counterText\">Perguntas sorteadas: 0 / 24</span>\n            </div>\n\n        </main>\n\n        <!-- Legenda das Categorias -->\n        <footer class=\"w-full mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs sm:text-sm font-bold\">\n            <div class=\"bg-emerald-50 border-2 border-emerald-200 p-2.5 rounded-xl flex items-center gap-2 text-emerald-800 shadow-sm\">\n                <div class=\"w-4 h-4 rounded-full bg-emerald-500 shrink-0\"></div>\n                <div class=\"truncate\">\n                    <span class=\"block text-[10px] text-emerald-600 uppercase font-extrabold\">Verde</span>\n                    <span>Emoções</span>\n                </div>\n            </div>\n\n            <div class=\"bg-pink-50 border-2 border-pink-200 p-2.5 rounded-xl flex items-center gap-2 text-pink-800 shadow-sm\">\n                <div class=\"w-4 h-4 rounded-full bg-pink-500 shrink-0\"></div>\n                <div class=\"truncate\">\n                    <span class=\"block text-[10px] text-pink-600 uppercase font-extrabold\">Rosa</span>\n                    <span>Conversando sobre a escola</span>\n                </div>\n            </div>\n\n            <div class=\"bg-purple-50 border-2 border-purple-200 p-2.5 rounded-xl flex items-center gap-2 text-purple-800 shadow-sm\">\n                <div class=\"w-4 h-4 rounded-full bg-purple-500 shrink-0\"></div>\n                <div class=\"truncate\">\n                    <span class=\"block text-[10px] text-purple-600 uppercase font-extrabold\">Roxo</span>\n                    <span>Desafios e situações difíceis</span>\n                </div>\n            </div>\n\n            <div class=\"bg-orange-50 border-2 border-orange-200 p-2.5 rounded-xl flex items-center gap-2 text-orange-800 shadow-sm\">\n                <div class=\"w-4 h-4 rounded-full bg-orange-500 shrink-0\"></div>\n                <div class=\"truncate\">\n                    <span class=\"block text-[10px] text-orange-600 uppercase font-extrabold\">Laranja</span>\n                    <span>Minha mochila de coragem</span>\n                </div>\n            </div>\n        </footer>\n\n    </div>\n\n    <!-- MODAL DE EXIBIÇÃO DA PERGUNTA SORTEADA -->\n    <div id=\"resultModal\" class=\"fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden\">\n        <div id=\"modalContent\" class=\"modal-animate bg-white w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl border-4 text-center relative overflow-hidden flex flex-col items-center\">\n            \n            <!-- Banner de Categoria Topo -->\n            <div id=\"modalCategoryBadge\" class=\"inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm sm:text-base mb-4 shadow-sm\">\n                <i id=\"modalCategoryIcon\" class=\"fa-solid fa-heart\"></i>\n                <span id=\"modalCategoryName\">Categoria</span>\n            </div>\n\n            <!-- Ícone Decorativo Central -->\n            <div id=\"modalAvatarBg\" class=\"w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-4xl sm:text-5xl my-2 shadow-inner\">\n                <i id=\"modalAvatarIcon\" class=\"fa-solid fa-face-smile\"></i>\n            </div>\n\n            <!-- Pergunta Sorteada -->\n            <div class=\"my-4 w-full\">\n                <p class=\"text-xs font-bold text-slate-400 uppercase tracking-widest mb-1\">Pergunta N.º <span id=\"modalQuestionNum\">1</span></p>\n                <h3 id=\"modalQuestionText\" class=\"text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 font-heading leading-snug px-2\">\n                    Texto da pergunta aqui...\n                </h3>\n            </div>\n\n            <!-- Botões do Modal -->\n            <div class=\"mt-6 flex flex-col sm:flex-row gap-3 w-full\">\n                <button onclick=\"RoletaEmocoes.closeModalAndSpin()\" class=\"btn-bounce flex-1 py-3.5 px-6 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-heading text-lg font-bold rounded-2xl shadow-md flex items-center justify-center gap-2\">\n                    <i class=\"fa-solid fa-arrows-rotate\"></i>\n                    <span>GIRAR NOVAMENTE</span>\n                </button>\n                \n                <button onclick=\"RoletaEmocoes.closeModalOnly()\" class=\"btn-bounce py-3.5 px-5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-2xl text-sm transition\">\n                    Ver Roleta\n                </button>\n            </div>\n\n            <!-- Ilustração Decorativa no Canto do Modal -->\n            <div class=\"absolute -bottom-4 -right-4 opacity-10 pointer-events-none text-8xl text-slate-800\">\n                <i class=\"fa-solid fa-paw\"></i>\n            </div>\n        </div>\n    </div>\n\n    </div>";
+  (function () {
+
+        // --- 1. BANCO DE DADOS DAS 24 PERGUNTAS REGISTRADAS ---
+        const QUESTIONS_DATA = [
+            // 🟢 VERDE – Emoções
+            { id: 1, category: 'VERDE', categoryName: 'Emoções', color: '#4CAF50', lightBg: '#E8F5E9', border: '#2E7D32', icon: 'fa-face-smile', question: 'Como você se sente quando pensa em ir para a escola?' },
+            { id: 2, category: 'VERDE', categoryName: 'Emoções', color: '#4CAF50', lightBg: '#E8F5E9', border: '#2E7D32', icon: 'fa-door-open', question: 'Qual emoção aparece quando você chega ao portão?' },
+            { id: 3, category: 'VERDE', categoryName: 'Emoções', color: '#4CAF50', lightBg: '#E8F5E9', border: '#2E7D32', icon: 'fa-heart-crack', question: 'O que acontece quando você sente saudade de alguém?' },
+            { id: 4, category: 'VERDE', categoryName: 'Emoções', color: '#4CAF50', lightBg: '#E8F5E9', border: '#2E7D32', icon: 'fa-sun', question: 'Em qual momento da escola você fica mais feliz?' },
+            { id: 5, category: 'VERDE', categoryName: 'Emoções', color: '#4CAF50', lightBg: '#E8F5E9', border: '#2E7D32', icon: 'fa-comment-dots', question: 'Se sua emoção pudesse falar, o que ela diria?' },
+            { id: 6, category: 'VERDE', categoryName: 'Emoções', color: '#4CAF50', lightBg: '#E8F5E9', border: '#2E7D32', icon: 'fa-cloud-rain', question: 'O que costuma acontecer quando você começa a ficar triste ou com medo?' },
+
+            // 🩷 ROSA – Conversando sobre a escola
+            { id: 7, category: 'ROSA', categoryName: 'Conversando sobre a escola', color: '#E91E63', lightBg: '#FCE4EC', border: '#C2185B', icon: 'fa-palette', question: 'O que você mais gosta de fazer na escola?' },
+            { id: 8, category: 'ROSA', categoryName: 'Conversando sobre a escola', color: '#E91E63', lightBg: '#FCE4EC', border: '#C2185B', icon: 'fa-thumbs-down', question: 'Tem alguma coisa na escola de que você não gosta?' },
+            { id: 9, category: 'ROSA', categoryName: 'Conversando sobre a escola', color: '#E91E63', lightBg: '#FCE4EC', border: '#C2185B', icon: 'fa-hand', question: 'Como é o momento de se despedir de quem acompanha você?' },
+            { id: 10, category: 'ROSA', categoryName: 'Conversando sobre a escola', color: '#E91E63', lightBg: '#FCE4EC', border: '#C2185B', icon: 'fa-wand-magic-sparkles', question: 'O que você gostaria que acontecesse quando chega à escola?' },
+            { id: 11, category: 'ROSA', categoryName: 'Conversando sobre a escola', color: '#E91E63', lightBg: '#FCE4EC', border: '#C2185B', icon: 'fa-user-group', question: 'Tem alguém de quem você sente falta quando está lá?' },
+            { id: 12, category: 'ROSA', categoryName: 'Conversando sobre a escola', color: '#E91E63', lightBg: '#FCE4EC', border: '#C2185B', icon: 'fa-wand-magic', question: 'Se pudesse mudar alguma coisa na escola, o que mudaria?' },
+
+            // 🟣 ROXO – Desafios e situações difíceis
+            { id: 13, category: 'ROXO', categoryName: 'Desafios e situações difíceis', color: '#9C27B0', lightBg: '#F3E5F5', border: '#7B1FA2', icon: 'fa-mountain', question: 'O que você acha que é mais difícil na hora de entrar na escola?' },
+            { id: 14, category: 'ROXO', categoryName: 'Desafios e situações difíceis', color: '#9C27B0', lightBg: '#F3E5F5', border: '#7B1FA2', icon: 'fa-tear', question: 'O que você faz quando sente vontade de chorar?' },
+            { id: 15, category: 'ROXO', categoryName: 'Desafios e situações difíceis', color: '#9C27B0', lightBg: '#F3E5F5', border: '#7B1FA2', icon: 'fa-paw', question: 'Se o ursinho não quisesse entrar na escola, o que poderia estar acontecendo?' },
+            { id: 16, category: 'ROXO', categoryName: 'Desafios e situações difíceis', color: '#9C27B0', lightBg: '#F3E5F5', border: '#7B1FA2', icon: 'fa-key', question: 'O que poderia deixar esse momento um pouquinho mais fácil?' },
+            { id: 17, category: 'ROXO', categoryName: 'Desafios e situações difíceis', color: '#9C27B0', lightBg: '#F3E5F5', border: '#7B1FA2', icon: 'fa-shield-halved', question: 'Você já conseguiu fazer alguma coisa mesmo estando com medo? Como foi?' },
+            { id: 18, category: 'ROXO', categoryName: 'Desafios e situações difíceis', color: '#9C27B0', lightBg: '#F3E5F5', border: '#7B1FA2', icon: 'fa-people-roof', question: 'O que gostaria que os adultos entendessem sobre esse momento?' },
+
+            // 🟠 LARANJA – Minha mochila de coragem
+            { id: 19, category: 'LARANJA', categoryName: 'Minha mochila de coragem', color: '#FF9800', lightBg: '#FFF3E0', border: '#E65100', icon: 'fa-bag-shopping', question: 'O que você levaria na mochila para se sentir mais seguro?' },
+            { id: 20, category: 'LARANJA', categoryName: 'Minha mochila de coragem', color: '#FF9800', lightBg: '#FFF3E0', border: '#E65100', icon: 'fa-user-ninja', question: 'Qual pessoa poderia ajudar você quando estivesse triste?' },
+            { id: 21, category: 'LARANJA', categoryName: 'Minha mochila de coragem', color: '#FF9800', lightBg: '#FFF3E0', border: '#E65100', icon: 'fa-lightbulb', question: 'Que lembrança boa poderia ajudar quando sentisse saudade?' },
+            { id: 22, category: 'LARANJA', categoryName: 'Minha mochila de coragem', color: '#FF9800', lightBg: '#FFF3E0', border: '#E65100', icon: 'fa-gamepad', question: 'Qual brincadeira você gostaria de fazer quando chegasse à escola?' },
+            { id: 23, category: 'LARANJA', categoryName: 'Minha mochila de coragem', color: '#FF9800', lightBg: '#FFF3E0', border: '#E65100', icon: 'fa-comment-medical', question: 'O que você poderia dizer para si mesmo quando sentisse medo?' },
+            { id: 24, category: 'LARANJA', categoryName: 'Minha mochila de coragem', color: '#FF9800', lightBg: '#FFF3E0', border: '#E65100', icon: 'fa-graduation-cap', question: 'Se pudesse ensinar uma coisa ao ursinho para ajudá-lo, o que ensinaria?' }
+        ];
+
+        // Variáveis de Controle
+        let availableQuestions = [...QUESTIONS_DATA];
+        let drawnHistory = [];
+        let isSpinning = false;
+        let currentRotation = 0; // em radianos
+
+        // Configuração do Canvas
+        let canvas = null, ctx = null;
+        const totalSlices = QUESTIONS_DATA.length; // 24
+        const sliceAngle = (2 * Math.PI) / totalSlices;
+        let centerX = 230, centerY = 230, radius = 220;
+
+        // Efeitos sonoros usando Web Audio API
+        let audioCtx = null;
+
+        function playTickSound() {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.04);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.04);
+        }
+
+        function playVictorySound() {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const notes = [440, 554.37, 659.25, 880];
+            notes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.1);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime + idx * 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.1 + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + idx * 0.1);
+                osc.stop(audioCtx.currentTime + idx * 0.1 + 0.3);
+            });
+        }
+
+        // --- 2. DESENHAR A ROLETA ---
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < totalSlices; i++) {
+                const item = QUESTIONS_DATA[i];
+                const angle = currentRotation + i * sliceAngle;
+
+                // Desenhar fatia
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, angle, angle + sliceAngle);
+                ctx.closePath();
+
+                ctx.fillStyle = item.color;
+                ctx.fill();
+
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.stroke();
+
+                // Desenhar texto/número na fatia
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(angle + sliceAngle / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 15px Fredoka, sans-serif';
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 3;
+                ctx.fillText(`${item.id}`, radius - 20, 5);
+                ctx.restore();
+            }
+
+            // Anel exterior decorativo
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.stroke();
+        }
+
+        // --- 3. LÓGICA DE GIRO DE EXATAMENTE 5 SEGUNDOS ---
+        function spinWheel() {
+            if (isSpinning) return;
+
+            // Verificar se restam perguntas
+            if (availableQuestions.length === 0) {
+                if (confirm("Todas as 24 perguntas já foram sorteadas! Deseja reiniciar a lista de perguntas agora?")) {
+                    resetQuestions();
+                }
+                return;
+            }
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            document.getElementById('spinBtn').classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Selecionar pergunta aleatória entre as disponíveis
+            const selectedIndex = Math.floor(Math.random() * availableQuestions.length);
+            const selectedQuestion = availableQuestions[selectedIndex];
+            
+            // Encontrar o índice original da pergunta na roleta (0 a 23)
+            const targetSliceIndex = QUESTIONS_DATA.findIndex(q => q.id === selectedQuestion.id);
+
+            // Calcular o ângulo exato para que a fatia sorteada pare sob o ponteiro topo (-90 graus ou 3*PI/2)
+            // Ponteiro está a -90° (Top). 
+            // O centro da fatia `targetSliceIndex` no ângulo final precisa bater com 3*PI/2.
+            const targetSliceCenterAngle = targetSliceIndex * sliceAngle + (sliceAngle / 2);
+            const pointerAngle = (3 * Math.PI) / 2; // -90 graus (topo)
+
+            // Quantidade de voltas completas (por exemplo, 8 voltas) para animação bonita
+            const fullRotations = 8;
+            
+            // Calculando a rotação total final necessária
+            const currentMod = currentRotation % (2 * Math.PI);
+            let targetRotation = currentRotation + (fullRotations * 2 * Math.PI) + (pointerAngle - targetSliceCenterAngle - currentMod);
+            
+            // Garantir que sempre gire no sentido horário pra frente
+            while (targetRotation <= currentRotation + (fullRotations * 2 * Math.PI)) {
+                targetRotation += 2 * Math.PI;
+            }
+
+            const duration = 5000; // Exatamente 5000ms = 5 segundos
+            const startTime = performance.now();
+            const startRotation = currentRotation;
+            const totalDeltaRotation = targetRotation - startRotation;
+
+            let lastSliceSoundIndex = -1;
+
+            // Função Easing Cubic-Bezier (Desaceleração suave de 5 segundos)
+            function easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+
+            function animate(currentTime) {
+                if (canvas !== document.getElementById('wheelCanvas')) { isSpinning = false; return; }
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = easeOutCubic(progress);
+
+                currentRotation = startRotation + totalDeltaRotation * easeProgress;
+                drawWheel();
+
+                // Reproduzir efeito sonoro a cada fatia cruzada
+                const normalizedAngle = (currentRotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+                const currentSliceUnderPointer = Math.floor(((3 * Math.PI / 2 - normalizedAngle + 2 * Math.PI) % (2 * Math.PI)) / sliceAngle);
+                
+                if (currentSliceUnderPointer !== lastSliceSoundIndex) {
+                    playTickSound();
+                    lastSliceSoundIndex = currentSliceUnderPointer;
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Final do Giro
+                    isSpinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+                    document.getElementById('spinBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+
+                    // Remover pergunta sorteada da lista disponível
+                    availableQuestions.splice(selectedIndex, 1);
+                    drawnHistory.push(selectedQuestion);
+
+                    // Atualizar Contador
+                    updateCounter();
+
+                    // Disparar Confetti & Som de Vitória
+                    playVictorySound();
+                    triggerConfetti();
+
+                    // Abrir Modal de Pergunta
+                    showModal(selectedQuestion);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // --- 4. EXIBIR MODAL DE RESULTADO ---
+        function showModal(item) {
+            const modal = document.getElementById('resultModal');
+            const modalContent = document.getElementById('modalContent');
+            const badge = document.getElementById('modalCategoryBadge');
+            const name = document.getElementById('modalCategoryName');
+            const icon = document.getElementById('modalCategoryIcon');
+            const avatarBg = document.getElementById('modalAvatarBg');
+            const avatarIcon = document.getElementById('modalAvatarIcon');
+            const qNum = document.getElementById('modalQuestionNum');
+            const qText = document.getElementById('modalQuestionText');
+
+            // Preencher Dados
+            name.textContent = item.categoryName;
+            qNum.textContent = item.id;
+            qText.textContent = item.question;
+
+            // Cores e Ícones dinâmicos
+            modalContent.style.borderColor = item.color;
+            badge.style.backgroundColor = item.lightBg;
+            badge.style.color = item.border;
+            icon.className = `fa-solid ${item.icon}`;
+
+            avatarBg.style.backgroundColor = item.lightBg;
+            avatarBg.style.color = item.color;
+            avatarIcon.className = `fa-solid ${item.icon}`;
+
+            // Exibir
+            modal.classList.remove('hidden');
+        }
+
+        function closeModalOnly() {
+            document.getElementById('resultModal').classList.add('hidden');
+        }
+
+        function closeModalAndSpin() {
+            closeModalOnly();
+            setTimeout(() => {
+                spinWheel();
+            }, 300);
+        }
+
+        // --- 5. REINICIAR PERGUNTAS ---
+        function resetQuestions() {
+            if (isSpinning) return;
+            availableQuestions = [...QUESTIONS_DATA];
+            drawnHistory = [];
+            updateCounter();
+            alert("A roleta foi reiniciada! Todas as 24 perguntas estão disponíveis novamente.");
+        }
+
+        function updateCounter() {
+            const text = document.getElementById('counterText');
+            text.textContent = `Perguntas sorteadas: ${drawnHistory.length} / ${QUESTIONS_DATA.length}`;
+        }
+
+        // --- 6. EFEITO VISUAL DE CONFETI ---
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        // --- 7. INICIALIZAÇÃO NA CARGA DA PÁGINA ---
+        
+        function init() {
+            canvas = document.getElementById('wheelCanvas');
+            if (!canvas) return;
+            ctx = canvas.getContext('2d');
+            centerX = canvas.width / 2; centerY = canvas.height / 2; radius = centerX - 10;
+            if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+            drawWheel();
+            updateCounter();
+        }
+        window.addEventListener('resize', () => { if (canvas && document.body.contains(canvas)) drawWheel(); });
+        window.RoletaEmocoes = { init, spinWheel, resetQuestions, closeModalOnly, closeModalAndSpin };
+  })();
+  </script>
+
   <!-- APPLICATION SCRIPT -->
   <script>
     // 33 ACTIVITIES DATABASE & JOGOS STRUCTURE
@@ -261,31 +636,19 @@
       'Recursos Específicos para Adolescentes'
     ];
 
+    const JOGOS_CATEGORIAS = [
+      { id: 'atencao', title: 'Atenção', icon: 'target', desc: 'Atenção, concentração, memória e funções cognitivas.', grad: 'from-indigo-500 to-sky-500', badge: 'bg-indigo-100 text-indigo-800', border: 'border-indigo-200', btn: 'from-indigo-500 to-indigo-600' },
+      { id: 'planejamento', title: 'Planejamento', icon: 'list-checks', desc: 'Organização, raciocínio lógico, tomada de decisão e resolução de problemas.', grad: 'from-purple-500 to-fuchsia-600', badge: 'bg-purple-100 text-purple-800', border: 'border-purple-200', btn: 'from-purple-500 to-purple-600' },
+      { id: 'autoconhecimento', title: 'Autoconhecimento', icon: 'heart-handshake', desc: 'Emoções, autoestima, características pessoais, valores e desenvolvimento socioemocional.', grad: 'from-rose-500 to-orange-500', badge: 'bg-rose-100 text-rose-800', border: 'border-rose-200', btn: 'from-rose-500 to-rose-600' }
+    ];
+
+    // REGISTRO ÚNICO DE JOGOS: para adicionar um novo jogo, inclua um item aqui (catId = id da categoria acima)
     const THERAPEUTIC_GAMES = [
-      {
-        id: 'ceu_pensamentos',
-        title: 'O Céu dos Pensamentos (ACT)',
-        category: 'Flexibilidade Psicológica',
-        description: 'Jogo interativo para adolescentes aprenderem a observar pensamentos como nuvens no céu sem se fundirem a eles.',
-        icon: 'cloud',
-        route: 'ceuPensamentos'
-      },
-      {
-        id: 'festa_sem_caos',
-        title: '🎉 MISSÃO: FESTA SEM CAOS!',
-        category: '📁 JOGOS DE PLANEJAMENTO',
-        description: 'Jogo completo de 15 casas com mercado digital, orçamento de R$ 500,00, imprevistos e tomada de decisão.',
-        icon: 'party-popper',
-        route: 'festaGameHome'
-      },
-      {
-        id: 'missao_cozinha',
-        title: '🍳 MISSÃO COZINHA: DECISÕES NA MEDIDA CERTA!',
-        category: '📁 JOGOS DE PLANEJAMENTO',
-        description: 'Jogo interativo de 12 etapas em cozinha virtual para treinar planejamento, priorização, quantidade, tempo e flexibilidade.',
-        icon: 'chef-hat',
-        route: 'cozinhaGameHome'
-      }
+      { id: 'radar_memoria', catId: 'atencao', title: '🧠 Radar da Memória & Foco Rápido', category: 'Memória & Atenção Seletiva', description: 'Memorize sequências visuais e reproduza na ordem exata para treinar memória de trabalho e atenção sustentada.', icon: 'brain', route: 'radarMemoria' },
+      { id: 'festa_sem_caos', catId: 'planejamento', title: '🎉 MISSÃO: FESTA SEM CAOS!', category: '15 Casas • Orçamento R$ 500', description: 'Jogo completo de 15 casas com mercado digital, orçamento de R$ 500,00, imprevistos e tomada de decisão.', icon: 'party-popper', route: 'festaGameHome' },
+      { id: 'missao_cozinha', catId: 'planejamento', title: '🍳 MISSÃO COZINHA: DECISÕES NA MEDIDA CERTA!', category: '12 Etapas • Cozinha Virtual', description: 'Jogo interativo de 12 etapas em cozinha virtual para treinar planejamento, priorização, quantidade, tempo e flexibilidade.', icon: 'chef-hat', route: 'cozinhaGameHome' },
+      { id: 'roleta_emocoes', catId: 'autoconhecimento', title: '🎡 ROLETA DAS EMOÇÕES: Minha Jornada até a Escola', category: 'Psicoterapia Infantil Lúdica', description: 'Roleta com 24 perguntas sobre emoções, escola, desafios e coragem, mais 4 desafios divertidos, sem repetição.', icon: 'disc-3', route: 'roletaEmocoes' },
+      { id: 'ceu_pensamentos', catId: 'autoconhecimento', title: 'O Céu dos Pensamentos (ACT)', category: 'Flexibilidade Psicológica', description: 'Jogo interativo para adolescentes aprenderem a observar pensamentos como nuvens no céu sem se fundirem a eles.', icon: 'cloud', route: 'ceuPensamentos' }
     ];
 
     // APPLICATION STATE
@@ -300,7 +663,7 @@
         
         // FESTA SEM CAOS STATE
         this.festaState = JSON.parse(localStorage.getItem('FESTA_CAOS_STATE') || JSON.stringify({
-          currentHouse: 4,
+          currentHouse: 1,
           budget: 500.0,
           guestsCount: 12,
           guestsList: ['Amigo 1', 'Amigo 2', 'Amigo 3'],
@@ -388,7 +751,7 @@
           'px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-roseLight text-roseMain font-bold' : 
           'px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 text-textSec hover:bg-roseLight hover:text-roseMain';
 
-        document.getElementById('tab-jogos').className = (view === 'jogosFolder' || view === 'festaGameHome' || view === 'festaBoard' || view === 'ceuPensamentos' || view === 'cozinhaGameHome' || view === 'cozinhaBoard' || view === 'cozinhaPsicoPanel') ? 
+        document.getElementById('tab-jogos').className = (view === 'jogosFolder' || view === 'jogosCategoria' || view === 'radarMemoria' || view === 'roletaEmocoes' || view === 'festaGameHome' || view === 'festaBoard' || view === 'ceuPensamentos' || view === 'cozinhaGameHome' || view === 'cozinhaBoard' || view === 'cozinhaPsicoPanel') ? 
           'px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-purple-100 text-purple-800 font-bold' : 
           'px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 text-textSec hover:bg-roseLight hover:text-roseMain';
 
@@ -405,6 +768,13 @@
         } else if (view === 'activity') {
           this.activeActivityId = param;
           this.renderActivityView(viewport);
+        } else if (view === 'jogosCategoria') {
+          this.activeCategoryId = param || this.activeCategoryId;
+          this.renderJogosCategoria(viewport);
+        } else if (view === 'radarMemoria') {
+          this.renderRadarMemoria(viewport);
+        } else if (view === 'roletaEmocoes') {
+          this.renderRoletaEmocoes(viewport);
         } else if (view === 'ceuPensamentos') {
           this.renderCeuPensamentos(viewport);
         } else if (view === 'festaGameHome') {
@@ -510,47 +880,90 @@
       // -------------------------------------------------------------
       // 📁 JOGOS FOLDER STRUCTURE & SUBFOLDER JOGOS DE PLANEJAMENTO
       // -------------------------------------------------------------
+      // -------------------------------------------------------------
+      // 📁 JOGOS: PASTAS POR CATEGORIA (Atenção • Planejamento • Autoconhecimento)
+      // -------------------------------------------------------------
       renderJogosFolderView(container) {
         container.innerHTML = `
           <div class="space-y-6 max-w-5xl mx-auto">
-            <div class="p-6 rounded-3xl bg-gradient-to-r from-purple-100 via-purple-50 to-bgMain border border-purple-200 card-shadow flex items-center justify-between">
+            <div class="p-6 rounded-3xl bg-gradient-to-r from-purple-100 via-purple-50 to-bgMain border border-purple-200 card-shadow flex items-center justify-between gap-3">
               <div class="space-y-1">
                 <div class="flex items-center gap-2 text-purple-700 font-extrabold text-xs">
                   <i data-lucide="folder-open" class="w-5 h-5"></i>
                   <span>DIRETÓRIO PRINCIPAL</span>
                 </div>
                 <h2 class="text-2xl font-extrabold text-textMain tracking-tight">📁 JOGOS</h2>
-                <p class="text-xs text-textSec">Biblioteca reunida de jogos terapêuticos e simuladores interativos para sessões.</p>
+                <p class="text-xs text-textSec">Biblioteca reunida de jogos terapêuticos organizada por objetivo. Abra uma pasta para ver os jogos.</p>
               </div>
-              <button onclick="app.navigate('home')" class="px-4 py-2 bg-white border border-purple-200 text-purple-800 text-xs font-bold rounded-xl shadow-sm hover:bg-purple-50 transition">
+              <button onclick="app.navigate('home')" class="px-4 py-2 bg-white border border-purple-200 text-purple-800 text-xs font-bold rounded-xl shadow-sm hover:bg-purple-50 transition shrink-0">
                 ← Voltar à Biblioteca
               </button>
             </div>
 
-            <div class="space-y-3">
-              <h3 class="font-bold text-sm text-textMain flex items-center gap-2">
-                <i data-lucide="gamepad-2" class="w-4 h-4 text-roseMain"></i> Jogos Terapêuticos Existentes & Treino Cognitivo
-              </h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                ${THERAPEUTIC_GAMES.filter(g => g.id !== 'festa_sem_caos' && g.id !== 'missao_cozinha').map(g => `
-                  <div class="bg-white rounded-3xl p-5 border border-roseLight card-shadow flex flex-col justify-between hover:border-purple-300 transition">
-                    <div class="space-y-2">
-                      <span class="px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 text-[10px] font-bold">${g.category}</span>
-                      <h4 class="font-bold text-base text-textMain">${g.title}</h4>
-                      <p class="text-xs text-textSec leading-relaxed">${g.description}</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+              ${JOGOS_CATEGORIAS.map(cat => {
+                const games = THERAPEUTIC_GAMES.filter(g => g.catId === cat.id);
+                return `
+                  <button onclick="app.navigate('jogosCategoria', '${cat.id}')" class="text-left bg-white rounded-3xl border-2 ${cat.border} card-shadow overflow-hidden hover:-translate-y-1 hover:shadow-lg transition flex flex-col">
+                    <div class="bg-gradient-to-r ${cat.grad} text-white p-5 flex items-center gap-3">
+                      <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center"><i data-lucide="${cat.icon}" class="w-6 h-6"></i></div>
+                      <div>
+                        <p class="text-[10px] font-extrabold uppercase tracking-wider opacity-90">📁 Pasta</p>
+                        <h3 class="font-extrabold text-lg leading-tight">${cat.title}</h3>
+                      </div>
                     </div>
-                    <div class="pt-4 mt-4 border-t border-roseLight flex justify-end">
-                      <button onclick="app.navigate('${g.route}')" class="px-4 py-2 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-bold text-xs rounded-xl shadow hover:opacity-90 transition flex items-center gap-1.5">
-                        <span>Jogar / Abrir</span>
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                      </button>
+                    <div class="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                      <p class="text-xs text-textSec leading-relaxed">${cat.desc}</p>
+                      <ul class="space-y-1 text-[11px] text-textMain font-semibold">
+                        ${games.map(g => `<li class="truncate">• ${g.title}</li>`).join('') || '<li class="italic text-slate-400">Nenhum jogo ainda</li>'}
+                      </ul>
+                      <span class="inline-flex self-start px-3 py-1 rounded-full ${cat.badge} text-[11px] font-extrabold">${games.length} ${games.length === 1 ? 'jogo' : 'jogos'} • Abrir pasta →</span>
                     </div>
-                  </div>
-                `).join('')}
-              </div>
+                  </button>`;
+              }).join('')}
             </div>
+          </div>
+        `;
+      }
 
-            <!-- NOVO BLOCO INTERATIVO DE MEMÓRIA E ATENÇÃO -->
+      renderJogosCategoria(container) {
+        const cat = JOGOS_CATEGORIAS.find(c => c.id === this.activeCategoryId) || JOGOS_CATEGORIAS[0];
+        const games = THERAPEUTIC_GAMES.filter(g => g.catId === cat.id);
+        container.innerHTML = `
+          <div class="space-y-6 max-w-5xl mx-auto">
+            <div class="p-6 rounded-3xl bg-gradient-to-r ${cat.grad} text-white card-shadow flex items-center justify-between gap-3">
+              <div class="space-y-1">
+                <p class="text-[11px] font-bold opacity-90">📁 JOGOS  ›  ${cat.title}</p>
+                <h2 class="text-2xl font-extrabold tracking-tight">${cat.title}</h2>
+                <p class="text-xs opacity-95 max-w-2xl">${cat.desc}</p>
+              </div>
+              <button onclick="app.navigate('jogosFolder')" class="px-4 py-2 bg-white text-purple-900 text-xs font-bold rounded-xl shadow hover:bg-purple-50 transition shrink-0">← Todas as pastas</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              ${games.map(g => `
+                <div class="bg-white rounded-3xl p-5 border-2 ${cat.border} card-shadow flex flex-col justify-between hover:border-purple-400 transition">
+                  <div class="space-y-2">
+                    <span class="px-2.5 py-1 rounded-full ${cat.badge} text-[10px] font-bold">${g.category}</span>
+                    <h4 class="font-extrabold text-base text-textMain">${g.title}</h4>
+                    <p class="text-xs text-textSec leading-relaxed">${g.description}</p>
+                  </div>
+                  <div class="pt-4 mt-4 border-t border-roseLight flex justify-end">
+                    <button onclick="app.navigate('${g.route}')" class="px-4 py-2 bg-gradient-to-r ${cat.btn} text-white font-bold text-xs rounded-xl shadow hover:opacity-90 transition flex items-center gap-1.5">
+                      <span>Jogar / Abrir</span>
+                      <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                </div>
+              `).join('') || '<p class="text-xs text-textSec italic">Nenhum jogo nesta pasta ainda.</p>'}
+            </div>
+          </div>
+        `;
+      }
+
+      renderRadarMemoria(container) {
+        container.innerHTML = `
+          <div class="space-y-6 max-w-4xl mx-auto">
+            <button onclick="app.navigate('jogosCategoria', 'atencao')" class="px-3 py-1.5 bg-indigo-50 text-indigo-800 rounded-xl font-bold border border-indigo-200 text-xs">← Voltar à pasta Atenção</button>
             <div class="bg-white rounded-3xl p-6 border-2 border-indigo-200 card-shadow space-y-4">
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <div class="space-y-0.5">
@@ -565,35 +978,68 @@
                 Clique em "Iniciar Novo Desafio" para treinar memória de trabalho e atenção sustentada com sequências visuais.
               </div>
             </div>
+          </div>
+        `;
+      }
 
-            <div class="space-y-3 pt-4 border-t border-purple-200">
-              <div class="flex items-center gap-2 text-purple-800 font-extrabold text-sm bg-purple-50 p-4 rounded-2xl border border-purple-200">
-                <i data-lucide="folder-kanban" class="w-5 h-5 text-purple-600"></i>
-                <span>📁 JOGOS DE PLANEJAMENTO (Subpasta)</span>
+      renderRoletaEmocoes(container) {
+        container.innerHTML = `
+          <div class="max-w-5xl mx-auto space-y-3">
+            <button onclick="app.navigate('jogosCategoria', 'autoconhecimento')" class="px-3 py-1.5 bg-rose-50 text-rose-800 rounded-xl font-bold border border-rose-200 text-xs">← Voltar à pasta Autoconhecimento</button>
+            ${ROLETA_HTML}
+          </div>
+        `;
+        RoletaEmocoes.init();
+      }
+
+      rerenderGame() {
+        const vp = document.getElementById('app-viewport');
+        if (this.currentView === 'cozinhaBoard') this.renderCozinhaBoard(vp); else this.renderFestaBoard(vp);
+        lucide.createIcons();
+      }
+
+      toggleIngredient(list, idx) {
+        const s = this.cozinhaState;
+        const from = list === 'have' ? s.ingredientsHave : s.ingredientsMissing;
+        const to = list === 'have' ? s.ingredientsMissing : s.ingredientsHave;
+        const item = from.splice(idx, 1)[0];
+        if (item !== undefined) to.push(item);
+        this.saveCozinhaState();
+        this.renderCozinhaBoard(document.getElementById('app-viewport'));
+      }
+
+      renderCozinhaPsicoPanel(container) {
+        const s = this.cozinhaState, n = s.psychologistNotes || (s.psychologistNotes = { planning: '', prioritization: '', flexibility: '', freeNotes: '' });
+        const levels = ['Realizou espontaneamente', 'Realizou com pouca ajuda', 'Realizou com muita ajuda', 'Não realizou'];
+        const sel = (key, label) => `
+          <div class="space-y-1">
+            <label class="font-bold text-textMain block">${label}</label>
+            <select onchange="app.cozinhaState.psychologistNotes.${key} = this.value; app.saveCozinhaState();" class="w-full p-2.5 rounded-xl border border-roseLight bg-bgMain font-medium">
+              ${levels.map(l => `<option ${n[key] === l ? 'selected' : ''}>${l}</option>`).join('')}
+            </select>
+          </div>`;
+        container.innerHTML = `
+          <div class="space-y-5 max-w-4xl mx-auto text-xs">
+            <div class="p-5 rounded-3xl bg-white border border-roseLight card-shadow flex items-center justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-extrabold text-textMain">📋 Painel do Psicólogo – Missão Cozinha</h2>
+                <p class="text-textSec">Receita: <strong>${s.selectedRecipe}</strong> • Etapa atual: <strong>${s.currentStage} de 12</strong> • Porções: <strong>${s.recipePortions}</strong></p>
               </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-white rounded-3xl p-6 border-2 border-purple-300 card-shadow space-y-4 hover:border-purple-500 transition flex flex-col justify-between">
-                  <div class="space-y-2">
-                    <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-extrabold">15 Casas • Orçamento R$ 500</span>
-                    <h4 class="font-extrabold text-base text-textMain">🎉 MISSÃO: FESTA SEM CAOS!</h4>
-                    <p class="text-xs text-textSec leading-relaxed">Organize uma festa de aniversário com mercado digital, carrinho e imprevistos.</p>
-                  </div>
-                  <button onclick="app.navigate('festaGameHome')" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow transition">
-                    Acessar Festa sem Caos
-                  </button>
-                </div>
-
-                <div class="bg-white rounded-3xl p-6 border-2 border-purple-300 card-shadow space-y-4 hover:border-purple-500 transition flex flex-col justify-between">
-                  <div class="space-y-2">
-                    <span class="px-3 py-1 rounded-full bg-pink-100 text-pink-800 text-xs font-extrabold">12 Etapas • Cozinha Virtual</span>
-                    <h4 class="font-extrabold text-base text-textMain">🍳 MISSÃO COZINHA: DECISÕES NA MEDIDA CERTA!</h4>
-                    <p class="text-xs text-textSec leading-relaxed">Organize receitas, calcule quantidades, gerencie o tempo e lide com surpresas na cozinha.</p>
-                  </div>
-                  <button onclick="app.navigate('cozinhaGameHome')" class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-95 text-white font-bold text-xs rounded-xl shadow transition">
-                    Acessar Missão Cozinha
-                  </button>
-                </div>
+              <button onclick="app.navigate('cozinhaBoard')" class="px-4 py-2 bg-purple-50 text-purple-800 rounded-xl font-bold border border-purple-200">← Voltar ao jogo</button>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-roseLight card-shadow space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                ${sel('planning', 'Planejamento')}
+                ${sel('prioritization', 'Priorização')}
+                ${sel('flexibility', 'Flexibilidade')}
+              </div>
+              <div class="space-y-1">
+                <label class="font-bold text-textMain block">Observações livres</label>
+                <textarea rows="4" onchange="app.cozinhaState.psychologistNotes.freeNotes = this.value; app.saveCozinhaState();" class="w-full p-3 rounded-xl border border-roseLight bg-bgMain">${n.freeNotes || ''}</textarea>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-textSec">
+                <p><strong class="text-textMain">Ingredientes que já tem:</strong> ${s.ingredientsHave.join(', ') || '—'}</p>
+                <p><strong class="text-textMain">Ingredientes a conseguir:</strong> ${s.ingredientsMissing.join(', ') || '—'}</p>
               </div>
             </div>
           </div>
@@ -736,7 +1182,7 @@
                     <h4 class="font-bold text-emerald-900">🟢 JÁ TENHO EM CASA:</h4>
                     <div class="flex flex-wrap gap-2">
                       ${this.cozinhaState.ingredientsHave.map((item, idx) => `
-                        <span class="px-3 py-1.5 bg-white rounded-xl border border-emerald-200 font-bold text-emerald-800 shadow-sm">${item}</span>
+                        <button onclick="app.toggleIngredient('have', ${idx})" class="px-3 py-1.5 bg-white rounded-xl border border-emerald-200 font-bold text-emerald-800 shadow-sm hover:bg-emerald-100">${item}</button>
                       `).join('')}
                     </div>
                   </div>
@@ -745,7 +1191,7 @@
                     <h4 class="font-bold text-amber-900">🟡 PRECISO CONSEGUIR:</h4>
                     <div class="flex flex-wrap gap-2">
                       ${this.cozinhaState.ingredientsMissing.map((item, idx) => `
-                        <span class="px-3 py-1.5 bg-white rounded-xl border border-amber-200 font-bold text-amber-800 shadow-sm">${item}</span>
+                        <button onclick="app.toggleIngredient('missing', ${idx})" class="px-3 py-1.5 bg-white rounded-xl border border-amber-200 font-bold text-amber-800 shadow-sm hover:bg-amber-100">${item}</button>
                       `).join('')}
                     </div>
                   </div>
@@ -877,7 +1323,7 @@
             `;
 
           default:
-            return `<p class="text-xs text-textSec">Casa ${house}</p>`;
+            return `<p class="text-xs text-textSec">Etapa ${stage}</p>`;
         }
       }
 
@@ -1073,14 +1519,14 @@
           list.push(itemId);
         }
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       selectCasa11Location(locTitle) {
         this.festaState.casa11Data.newLocation = locTitle;
         this.festaState.spaceCasa11.local = locTitle;
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       updateCasa11Zone(zone, pos) {
@@ -1189,7 +1635,7 @@
         list[targetIdx] = temp;
         this.festaState.prioritiesCasa13 = [...list];
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       updateCasa13Delegation(probKey, val) {
@@ -1381,7 +1827,7 @@
       setFestaHouse(num) {
         this.festaState.currentHouse = num;
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       nextFestaHouse() {
@@ -1433,7 +1879,7 @@
                 <h3 class="text-lg font-bold text-textMain">Adicione os convidados à sua lista (até 12 pessoas)</h3>
                 <div class="flex gap-2">
                   <input type="text" id="new-guest-input" placeholder="Ex: Amigo 4, Prima Ana..." class="flex-1 p-2.5 rounded-xl border border-roseLight bg-bgMain">
-                  <button onclick="const inp=document.getElementById('new-guest-input'); if(inp.value.trim() && app.festaState.guestsList.length < 12){ app.festaState.guestsList.push(inp.value.trim()); app.saveFestaState(); app.renderFestaBoard(document.getElementById('app-viewport')); }" class="px-4 py-2 bg-purple-600 text-white font-bold rounded-xl">
+                  <button onclick="const inp=document.getElementById('new-guest-input'); if(inp.value.trim() && app.festaState.guestsList.length < 12){ app.festaState.guestsList.push(inp.value.trim()); app.saveFestaState(); app.rerenderGame(); }" class="px-4 py-2 bg-purple-600 text-white font-bold rounded-xl">
                     + Adicionar
                   </button>
                 </div>
@@ -1441,7 +1887,7 @@
                   ${this.festaState.guestsList.map((g, i) => `
                     <span class="px-3 py-1.5 bg-bgMain border border-roseLight rounded-xl font-bold flex items-center gap-2">
                       ${g}
-                      <button onclick="app.festaState.guestsList.splice(${i}, 1); app.saveFestaState(); app.renderFestaBoard(document.getElementById('app-viewport'));" class="text-rose-500">×</button>
+                      <button onclick="app.festaState.guestsList.splice(${i}, 1); app.saveFestaState(); app.rerenderGame();" class="text-rose-500">×</button>
                     </span>
                   `).join('')}
                 </div>
@@ -1556,13 +2002,14 @@
             `;
 
           case 11:
+            return this.renderCasa11ChuvaHTML();
             return `
               <div class="space-y-4 text-xs">
                 <span class="px-3 py-1 rounded-full bg-sky-100 text-sky-800 font-bold">🌧️ CASA 11 – COMEÇOU A CHOVER!</span>
                 <h3 class="text-lg font-bold text-textMain">Proteja os itens da festa e reorganize o espaço para área coberta</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   ${['A. Transferir para a garagem', 'B. Utilizar área coberta', 'C. Adaptar espaço interno'].map(opt => `
-                    <button onclick="app.festaState.spaceCasa11.local = '${opt}'; app.saveFestaState(); app.renderFestaBoard(document.getElementById('app-viewport'));" class="p-4 rounded-2xl border-2 text-left font-bold ${this.festaState.spaceCasa11.local === opt ? 'border-sky-600 bg-sky-50 text-sky-900' : 'border-roseLight bg-bgMain'}">
+                    <button onclick="app.festaState.spaceCasa11.local = '${opt}'; app.saveFestaState(); app.rerenderGame();" class="p-4 rounded-2xl border-2 text-left font-bold ${this.festaState.spaceCasa11.local === opt ? 'border-sky-600 bg-sky-50 text-sky-900' : 'border-roseLight bg-bgMain'}">
                       ${opt}
                     </button>
                   `).join('')}
@@ -1574,6 +2021,7 @@
             return this.renderCasa12FinancialHTML();
 
           case 13:
+            return this.renderCasa13SimultaneoHTML();
             return `
               <div class="space-y-4 text-xs">
                 <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-800 font-bold">🤯 CASA 13 – TUDO ACONTECEU AO MESMO TEMPO!</span>
@@ -1593,6 +2041,7 @@
             `;
 
           case 14:
+            return this.renderCasa14RetrospectivaHTML();
             return `
               <div class="space-y-4 text-xs">
                 <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">🔄 CASA 14 – REVISÃO DO PLANEJAMENTO</span>
@@ -1797,7 +2246,7 @@
       toggleCasa7FoodExtra() {
         this.festaState.casa7Data.foodExtraTime = !this.festaState.casa7Data.foodExtraTime;
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       moveCasa7TaskStatus(taskId, newStatus) {
@@ -1805,7 +2254,7 @@
         if (task) {
           task.status = newStatus;
           this.saveFestaState();
-          this.renderFestaBoard(document.getElementById('app-viewport'));
+          this.rerenderGame();
         }
       }
 
@@ -1817,7 +2266,7 @@
           list.push(taskId);
         }
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       updateCasa7TaskStart(taskId, hour) {
@@ -1927,13 +2376,13 @@
         list[targetIdx] = temp;
         this.festaState.prioritiesCasa8 = [...list];
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       selectCasa8FirstAction(choice) {
         this.festaState.casa8Data.firstActionChoice = choice;
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       startCasa8Timer() {
@@ -2105,14 +2554,14 @@
 
         this.saveFestaState();
         this.closeCustomProductModal();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       deleteCustomProduct(id) {
         if (confirm('Deseja excluir este produto personalizado?')) {
           this.festaState.customProducts = this.festaState.customProducts.filter(p => p.id !== id);
           this.saveFestaState();
-          this.renderFestaBoard(document.getElementById('app-viewport'));
+          this.rerenderGame();
         }
       }
 
@@ -2125,14 +2574,14 @@
         }
         this.festaState.budget = 500.0 - this.festaState.cart.reduce((s, i) => s + (i.price * i.qtd), 0);
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       removeFromCart(index) {
         this.festaState.cart.splice(index, 1);
         this.festaState.budget = 500.0 - this.festaState.cart.reduce((s, i) => s + (i.price * i.qtd), 0);
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       moveTaskUp(idx) {
@@ -2141,7 +2590,7 @@
         this.festaState.tasksOrder[idx] = this.festaState.tasksOrder[idx - 1];
         this.festaState.tasksOrder[idx - 1] = temp;
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       moveTaskDown(idx) {
@@ -2150,7 +2599,7 @@
         this.festaState.tasksOrder[idx] = this.festaState.tasksOrder[idx + 1];
         this.festaState.tasksOrder[idx + 1] = temp;
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       resetTasksOrder() {
@@ -2165,14 +2614,14 @@
           'Receber os convidados'
         ];
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       rotatePriority(idx) {
         const item = this.festaState.prioritiesCasa8.splice(idx, 1)[0];
         this.festaState.prioritiesCasa8.unshift(item);
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       toggleEssentialItem(item) {
@@ -2183,7 +2632,7 @@
           this.festaState.essentialItems.push(item);
         }
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       selectSalonAlternative(idx) {
@@ -2197,7 +2646,7 @@
         const item = this.festaState.prioritiesCasa13.splice(idx, 1)[0];
         this.festaState.prioritiesCasa13.unshift(item);
         this.saveFestaState();
-        this.renderFestaBoard(document.getElementById('app-viewport'));
+        this.rerenderGame();
       }
 
       openPlanoBModal() {
